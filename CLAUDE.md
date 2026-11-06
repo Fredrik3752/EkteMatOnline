@@ -13,7 +13,7 @@ Python 3.9+, Flask 3.1, Jinja2, SQLite (`sqlite3`), pytest. Ingen betalte API-er
 ## MVC-oppsett
 - `app/models/` – domeneklasser (dataclasses) med forretningsregler: `FoodItem`, `Order` (tilstandsmaskin for `OrderStatus`), `PaymentStatus`, `GuestGroup`, `Question`, `User`. Regelbrudd gir `ValidationError` / `InvalidStatusTransition`.
 - `app/models/repositories/` – **eneste** sted som rører SQLite (`database.py`, `schema.sql`, `*_repository.py`) og bildefiler (`image_store.py`). Skal kunne byttes mot Neo4j i oblig 5.
-- `app/controllers/` – Flask-blueprints `shop` (meny), `cart` (handlekurv i session), `checkout` (bestilling), `account` (registrer/logg inn/ut) og `admin` (`/admin`). Kaller repositories, rendrer maler. `auth.py` gir `g.user`, `@login_required` og `@admin_required`; `csrf.py` sjekker token på alle POST.
+- `app/controllers/` – Flask-blueprints `shop` (meny), `cart` (handlekurv i session), `checkout` (bestilling), `account` (registrer/logg inn/ut, mine ordrer, spørsmål) og `admin` (`/admin`: matretter, bilder, ordrer, spørsmål). Kaller repositories, rendrer maler. `auth.py` gir `g.user`, `@login_required` og `@admin_required`; `csrf.py` sjekker token på alle POST.
 - `app/templates/` – Jinja2-views; `app/static/` – CSS/JS/bilder.
 
 ## Kommandoer
@@ -42,3 +42,5 @@ pytest
 - Tester bruker `post()`/`login()` fra `tests/conftest.py` (setter CSRF-token).
 - Ny funksjonalitet får tester i `tests/`; `pytest` skal være grønn før commit.
 - Kode og kommentarer på engelsk, brukergrensesnitt på norsk.
+- Ikke push eller tag uten at produkteieren ber om det. Versjonen som vurderes får taggen `oblig4`.
+- Diagrammer i `docs/design/` skal speile koden; oppdater dem når domenet endres.
