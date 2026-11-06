@@ -8,7 +8,7 @@ spørsmål). Krav: A1–A4 og C1–C5 i oppgaveteksten; status per fase i `docs/
 Ferdig: alle krav A1–A4 og C1–C5 (fase 3–8). A2 er løst med opplasting + forhåndsvisning før lagring; AI-instruksjon er ikke laget (se docs/plans/08-bilder.md).
 
 ## Stack
-Python 3.9+, Flask 3.1, Jinja2, SQLite (`sqlite3`), pytest. Ingen betalte API-er.
+Python 3.9+, Flask 3.1, Jinja2, SQLite (`sqlite3`) eller Neo4j 5.26 (driver `neo4j` 5.28, Docker), pytest. Ingen betalte API-er.
 
 ## MVC-oppsett
 - `app/models/` – domeneklasser (dataclasses) med forretningsregler: `FoodItem`, `Order` (tilstandsmaskin for `OrderStatus`), `PaymentStatus`, `GuestGroup`, `Question`, `User`. Regelbrudd gir `ValidationError` / `InvalidStatusTransition`.
@@ -23,7 +23,12 @@ pip install -r requirements.txt
 flask --app app seed         # nullstiller og fyller inn syntetiske testdata
 flask --app app init-db      # nullstiller til tom database
 flask --app app run --debug  # http://127.0.0.1:5000
-pytest
+pytest                       # SQLite (standard)
+
+# Neo4j (Oblig 5) – passord i .env
+docker compose up -d         # neo4j-dev (7474/7687) og neo4j-test (7475/7688)
+STORAGE_BACKEND=neo4j flask --app app run --debug
+TEST_STORAGE_BACKEND=neo4j pytest   # hele samlingen mot neo4j-test (tømmes per test)
 ```
 
 ## Regler
@@ -37,6 +42,7 @@ pytest
 - Ordredetaljer vises via `templates/orders/_details.html` (kvittering, kunde og admin).
 - Priser lagres i øre (heltall). Allergier lagres per gjestegruppe, ikke per navngitt gjest.
 - Kun syntetiske data. Ikke les, kopier eller commit noe fra `EkteMat_project_inbox 2/` eller oppgave-PDF-en.
+- Testene velger lagring med `TEST_STORAGE_BACKEND`, aldri `STORAGE_BACKEND` fra `.env`, og Neo4j-tester bruker bare `NEO4J_TEST_URI`. `reset` nekter å tømme en Neo4j-database uten markørnoden `(:EkteMatStorage)`.
 - Ingen hemmeligheter i Git: bruk `.env` (ignorert), dokumenter nøkler i `.env.example`.
 - Større funksjoner planlegges først i plan mode; planen lagres i `docs/plans/NN-navn.md` før koding.
 - Alle skjemaer med POST har `<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">`. Admin-ruter har `@admin_required`.

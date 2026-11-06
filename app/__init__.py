@@ -1,14 +1,12 @@
 """Ekte Mat Online – Flask application factory."""
 import os
 
-from dotenv import load_dotenv
 from flask import Flask
 
 from app.config import Config
 
 
 def create_app(test_config=None):
-    load_dotenv()
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(Config)
     if test_config:

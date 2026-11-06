@@ -29,4 +29,9 @@ def backend_module(app=None):
 
 def implementation(public_name: str):
     """The repository class for the active backend, e.g. implementation('OrderRepository')."""
-    return backend_module().REPOSITORIES[public_name]
+    module = backend_module()
+    try:
+        return module.REPOSITORIES[public_name]
+    except KeyError:
+        raise NotImplementedError(
+            f"Lagringen {backend_name()!r} har ingen implementasjon av {public_name} ennå") from None
