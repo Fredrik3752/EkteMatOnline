@@ -2,8 +2,9 @@
 {% block title %}Admin · Ekte Mat Online{% endblock %}
 
 {% block content %}
+{% include "admin/_nav.html" %}
 <h1>Administrasjon</h1>
-<p class="muted">Oversikt for Ekte Mat-ansatte. Sidene for matretter, bilder, ordrer og spørsmål kommer i neste faser.</p>
+<p class="muted">Oversikt for Ekte Mat-ansatte. Sidene for bilder, ordrer og spørsmål kommer i neste faser.</p>
 
 <div class="stat-grid">
   <div class="stat"><span class="stat-value">{{ order_total }}</span><span class="stat-label">Ordrer totalt</span></div>

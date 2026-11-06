@@ -9,10 +9,11 @@
 
 <section>
   <h2>Hva skal du arrangere?</h2>
+  <p><a href="{{ url_for('shop.menu') }}">Se hele menyen →</a></p>
   {% if categories %}
     <ul class="category-grid">
       {% for category in categories %}
-        <li class="category-card">{{ category.name }}</li>
+        <li><a class="category-card" href="{{ url_for('shop.menu_category', slug=category.slug) }}">{{ category.name }}</a></li>
       {% endfor %}
     </ul>
   {% else %}

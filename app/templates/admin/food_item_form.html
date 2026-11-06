@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Ny matrett' if is_new else 'Rediger ' ~ item.name }} · Admin · Ekte Mat Online{% endblock %}
+
+{% macro error(name) -%}
+  {% if errors.get(name) %}<p class="field-error" id="{{ name }}-error">{{ errors[name] }}</p>{% endif %}
+{%- endmacro %}
+{% macro invalid(name) -%}
+  {% if errors.get(name) %}aria-invalid="true" aria-describedby="{{ name }}-error"{% endif %}
+{%- endmacro %}
+{% macro checkboxes(field, legend, options, selected) %}
+  <fieldset class="check-group">
+    <legend>{{ legend }}</legend>
+    {% set selected_ids = selected|map(attribute='id')|list %}
+    {% for option in options %}
+      <label class="check">
+        <input type="checkbox" name="{{ field }}" value="{{ option.id }}" {% if option.id in selected_ids %}checked{% endif %}>
+        {{ option.name }}
+      </label>
+    {% endfor %}
+    {{ error(field) }}
+  </fieldset>
+{% endmacro %}
+
+{% block content %}
+{% include "admin/_nav.html" %}
+<h1>{{ 'Ny matrett' if is_new else 'Rediger matrett' }}</h1>
+{% if errors %}<div class="flash flash-error" role="alert">Rett opp feltene som er markert.</div>{% endif %}
+
+{% set price_value = form.get('price') if form else ('' if is_new else item.price_ore|nok_input) %}
+{% set min_value = form.get('min_order_qty') if form else item.min_order_qty %}
+
+<form class="admin-form" method="post" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <div class="form-grid">
+    <div class="span-2">
+      <label for="name">Navn</label>
+      <input id="name" name="name" value="{{ item.name }}" required {{ invalid('name') }}>
+      {{ error('name') }}
+    </div>
+    <div class="span-2">
+      <label for="description">Beskrivelse</label>
+      <textarea id="description" name="description" rows="3">{{ item.description }}</textarea>
+    </div>
+    <div>
+      <label for="price">Pris i NOK</label>
+      <input id="price" name="price" inputmode="decimal" value="{{ price_value }}" placeholder="189" required {{ invalid('price') }}>
+      {{ error('price') }}
+    </div>
+    <div>
+      <label for="min_order_qty">Minimum bestilling (antall)</label>
+      <input id="min_order_qty" name="min_order_qty" type="number" min="1" step="1" value="{{ min_value }}" required {{ invalid('min_order_qty') }}>
+      {{ error('min_order_qty') }}
+    </div>
+    <div class="span-2">
+      <label for="origin">Opprinnelse <span class="muted">(valgfritt – vises på menykortet)</span></label>
+      <input id="origin" name="origin" value="{{ item.origin or '' }}" placeholder="f.eks. Lam fra småbruk på Voss">
+    </div>
+  </div>
+
+  {{ checkboxes('categories', 'Arrangementer', categories, item.categories) }}
+  {{ checkboxes('allergens', 'Allergener', allergens, item.allergens) }}
+  {{ checkboxes('dietary_labels', 'Kostholdsmerker', dietary_labels, item.dietary_labels) }}
+
+  <label class="check publish-toggle">
+    <input type="checkbox" name="is_published" value="1" {% if item.is_published %}checked{% endif %}>
+    Publisert – vises på menyen for kunder
+  </label>
+
+  <p class="muted">Bilde legges til i bildefunksjonen (kommer i fase 8).</p>
+
+  <div class="form-actions">
+    <button type="submit" class="button">{{ 'Legg til matrett' if is_new else 'Lagre endringer' }}</button>
+    <a href="{{ url_for('admin.food_items') }}">Avbryt</a>
+  </div>
+</form>
+{% endblock %}

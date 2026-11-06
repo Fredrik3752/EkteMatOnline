@@ -68,6 +68,14 @@ class FoodItemRepository:
         rows = get_db().execute(f"SELECT {_COLUMNS} FROM food_items {where} ORDER BY name").fetchall()
         return self._load(rows)
 
+    def list_published_in_category(self, category_id: int) -> List[FoodItem]:
+        rows = get_db().execute(
+            f"SELECT {_COLUMNS} FROM food_items WHERE is_published = 1 AND id IN"
+            " (SELECT food_item_id FROM food_item_categories WHERE event_category_id = ?)"
+            " ORDER BY name", (category_id,),
+        ).fetchall()
+        return self._load(rows)
+
     def list_published_by_category(self) -> "OrderedDict[EventCategory, List[FoodItem]]":
         """C1: published items grouped by event category, in category order."""
         items = self.list_all(published_only=True)

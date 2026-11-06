@@ -59,9 +59,12 @@ flask --app app run --debug
 | Side | Adresse |
 |---|---|
 | Forside | `/` |
+| Meny (alle arrangementer) | `/meny` |
+| Meny for ett arrangement | `/meny/<slug>`, f.eks. `/meny/wedding` |
 | Registrer deg | `/registrer` |
 | Logg inn | `/logg-inn` |
 | Administrasjon (kun admin) | `/admin/` |
+| Matretter (kun admin) | `/admin/matretter` |
 
 ## Teste
 

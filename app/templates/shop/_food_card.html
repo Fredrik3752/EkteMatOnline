@@ -1,0 +1,32 @@
+{# One food item as a menu card (C1). Expects `item`. #}
+<article class="food-card">
+  {% if item.image_path %}
+    <img class="food-image" src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.name }}" loading="lazy">
+  {% else %}
+    <div class="food-image placeholder" aria-hidden="true"><span>{{ item.name[:1] }}</span></div>
+  {% endif %}
+  <div class="food-body">
+    <h3>{{ item.name }}</h3>
+    {% if item.description %}<p class="food-desc">{{ item.description }}</p>{% endif %}
+    {% if item.origin %}<p class="food-origin">Opprinnelse: {{ item.origin }}</p>{% endif %}
+
+    <dl class="food-facts">
+      <div><dt>Pris</dt><dd class="price">{{ item.price_ore|nok }}</dd></div>
+      <div><dt>Minimum</dt><dd>{{ item.min_order_qty }} stk.</dd></div>
+    </dl>
+
+    <div class="chips" aria-label="Allergener">
+      <span class="chips-label">Allergener:</span>
+      {% for allergen in item.allergens %}
+        <span class="chip chip-allergen">{{ allergen.name }}</span>
+      {% else %}
+        <span class="chip">Ingen oppgitt</span>
+      {% endfor %}
+    </div>
+    {% if item.dietary_labels %}
+    <div class="chips" aria-label="Kosthold">
+      {% for label in item.dietary_labels %}<span class="chip chip-diet">{{ label.name }}</span>{% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</article>

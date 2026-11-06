@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ current.name ~ ' · ' if current }}Meny · Ekte Mat Online{% endblock %}
+
+{% block content %}
+<h1>{{ 'Meny for ' ~ current.name|lower if current else 'Meny' }}</h1>
+<p class="muted">Prisene gjelder per stykk eller porsjon. Minimum bestilling står på hvert kort.</p>
+
+<nav class="category-tabs" aria-label="Arrangementer">
+  <a href="{{ url_for('shop.menu') }}" {% if not current %}aria-current="page"{% endif %}>Alle</a>
+  {% for category in categories %}
+    <a href="{{ url_for('shop.menu_category', slug=category.slug) }}"
+       {% if current and current.id == category.id %}aria-current="page"{% endif %}>{{ category.name }}</a>
+  {% endfor %}
+</nav>
+
+{% for category, items in groups.items() %}
+  <section class="menu-section" id="{{ category.slug }}">
+    {% if not current %}<h2>{{ category.name }}</h2>{% endif %}
+    {% if items %}
+      <div class="food-grid">
+        {% for item in items %}{% include "shop/_food_card.html" %}{% endfor %}
+      </div>
+    {% else %}
+      <p>Vi har ingen retter for {{ category.name|lower }} på menyen akkurat nå.
+         <a href="{{ url_for('shop.menu') }}">Se hele menyen</a>.</p>
+    {% endif %}
+  </section>
+{% else %}
+  <p>Menyen er tom akkurat nå.</p>
+{% endfor %}
+{% endblock %}

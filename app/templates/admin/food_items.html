@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Matretter · Admin · Ekte Mat Online{% endblock %}
+
+{% block content %}
+{% include "admin/_nav.html" %}
+<div class="page-head">
+  <h1>Matretter</h1>
+  <a class="button" href="{{ url_for('admin.food_item_new') }}">+ Ny matrett</a>
+</div>
+
+{% if items %}
+<div class="table-wrap">
+<table class="table">
+  <thead>
+    <tr>
+      <th>Navn</th><th class="num">Pris</th><th class="num">Min.</th>
+      <th>Arrangementer</th><th>Allergener</th><th>Status</th><th><span class="visually-hidden">Handlinger</span></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in items %}
+    <tr>
+      <td><a href="{{ url_for('admin.food_item_edit', item_id=item.id) }}">{{ item.name }}</a></td>
+      <td class="num nowrap">{{ item.price_ore|nok }}</td>
+      <td class="num">{{ item.min_order_qty }}</td>
+      <td>{{ item.categories|map(attribute='name')|join(', ') }}</td>
+      <td>{{ item.allergens|map(attribute='name')|join(', ') or '–' }}</td>
+      <td>
+        {% if item.is_published %}<span class="badge badge-delivered">Publisert</span>
+        {% else %}<span class="badge">Skjult</span>{% endif %}
+      </td>
+      <td class="actions">
+        <a href="{{ url_for('admin.food_item_edit', item_id=item.id) }}">Rediger</a>
+        <form class="inline-form" method="post" action="{{ url_for('admin.food_item_toggle_published', item_id=item.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="text-button">{{ 'Skjul' if item.is_published else 'Publiser' }}</button>
+        </form>
+        <form class="inline-form" method="post" action="{{ url_for('admin.food_item_delete', item_id=item.id) }}"
+              onsubmit='return confirm({{ ("Slette «" ~ item.name ~ "»? Eksisterende ordrer beholder navn og pris.")|tojson }});'>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="text-button danger">Slett</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+  <p>Ingen matretter ennå. <a href="{{ url_for('admin.food_item_new') }}">Legg til den første.</a></p>
+{% endif %}
+{% endblock %}

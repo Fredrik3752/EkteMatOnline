@@ -1,0 +1,4 @@
+<nav class="admin-nav" aria-label="Administrasjon">
+  <a href="{{ url_for('admin.index') }}" {% if request.endpoint == 'admin.index' %}aria-current="page"{% endif %}>Oversikt</a>
+  <a href="{{ url_for('admin.food_items') }}" {% if request.endpoint and request.endpoint.startswith('admin.food_item') %}aria-current="page"{% endif %}>Matretter</a>
+</nav>

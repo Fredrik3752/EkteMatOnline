@@ -28,12 +28,13 @@ def create_app(test_config=None):
     from app.controllers.auth import load_logged_in_user
     from app.controllers.csrf import check_csrf, csrf_token
     from app.controllers.errors import register_error_handlers
-    from app.models.money import format_nok
+    from app.models.money import format_nok, ore_to_input
 
     app.before_request(load_logged_in_user)
     app.before_request(check_csrf)
     app.jinja_env.globals["csrf_token"] = csrf_token
     app.jinja_env.filters["nok"] = format_nok
+    app.jinja_env.filters["nok_input"] = ore_to_input
     register_error_handlers(app)
 
     app.register_blueprint(shop.bp)

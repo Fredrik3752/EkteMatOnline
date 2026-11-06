@@ -21,3 +21,9 @@ def nok_to_ore(value) -> int:
     if ore < 0:
         raise ValueError("amount cannot be negative")
     return ore
+
+
+def ore_to_input(amount_ore: int) -> str:
+    """Øre as an editable NOK value: 18900 -> '189', 18950 -> '189,50'."""
+    kroner, ore = divmod(int(amount_ore), 100)
+    return f"{kroner}" if ore == 0 else f"{kroner},{ore:02d}"

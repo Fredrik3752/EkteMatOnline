@@ -12,6 +12,7 @@
       <a class="brand" href="{{ url_for('shop.index') }}">Ekte Mat</a>
       <nav class="main-nav">
         <a href="{{ url_for('shop.index') }}">Forside</a>
+        <a href="{{ url_for('shop.menu') }}">Meny</a>
         {% if g.user %}
           {% if g.user.is_admin %}<a href="{{ url_for('admin.index') }}">Admin</a>{% endif %}
           <span class="nav-user">{{ g.user.name }}</span>
