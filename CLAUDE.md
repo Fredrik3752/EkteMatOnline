@@ -6,6 +6,7 @@ Bestillings- og cateringløsning for den fiktive Bergen-bedriften Ekte Mat AS
 ordrer, spørsmål) og administrasjonspanel (matretter, bilder, ordrer, svar på
 spørsmål). Krav: A1–A4 og C1–C5 i oppgaveteksten; status per fase i `docs/plans/`.
 Ferdig: alle krav A1–A4 og C1–C5 (fase 3–8). A2 er løst med opplasting + forhåndsvisning før lagring; AI-instruksjon er ikke laget (se docs/plans/08-bilder.md).
+Oblig 5 (gren `oblig5-neo4j`): Neo4j som lagring, fase N1–N5 i `docs/plans/10-neo4j.md`. Grafmodell: `docs/design/grafmodell.md`.
 
 ## Stack
 Python 3.9+, Flask 3.1, Jinja2, SQLite (`sqlite3`) eller Neo4j 5.26 (driver `neo4j` 5.28, Docker), pytest. Ingen betalte API-er.

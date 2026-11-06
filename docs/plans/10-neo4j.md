@@ -1,6 +1,6 @@
 # Plan 10 – Neo4j som lagringslag (Oblig 5)
 
-Status: godkjent av produkteier (Fredrik), 2026-11-06. Gren: `oblig5-neo4j`. `main` og taggen `oblig4` røres ikke.
+Status: **ferdig** (N1–N5), 2026-11-06. Godkjent av produkteier (Fredrik). Gren: `oblig5-neo4j`. `main` og taggen `oblig4` er ikke rørt.
 
 ## Kravet
 
@@ -94,3 +94,18 @@ Valg:
 - SQLite-spesifikke tester (skjema, `CHECK`, rå SQL) kjører bare mot SQLite. Tilsvarende tester for
   Neo4j sjekker constraints og grafstrukturen.
 - Arkitekturtesten utvides: `sqlite3` bare i `repositories/sqlite/`, og `neo4j` bare i `repositories/neo4j/`.
+
+## Resultat
+
+| Fase | Commit-tema | Utfall |
+|---|---|---|
+| N1 | Valg av lagring med `STORAGE_BACKEND` | 334 tester grønne, og controllere og views er uendret |
+| N2 | Docker, driver, skjema, sikker nullstilling | Fant og rettet en feil fra Oblig 4: `.env` ble lest for sent |
+| N3 | Repositoryene i Cypher | 380 tester grønne på SQLite **og** på Neo4j |
+| N4 | Nettlesertest med Neo4j | C1–C5 og A1–A4 virker. Utgått `CALL {}`-syntaks er rettet, og en vakttest er lagt til |
+| N5 | Dokumentasjon | README, [grafmodell](../design/grafmodell.md) og skjermbilder fra Neo4j Browser |
+
+Avvik fra planen:
+- **Ny domeneregel:** linjeprisen kan ikke være negativ (`Order.validate`). Den var før bare en `CHECK` i SQLite.
+- **`list_published_by_category`** ligger i `base.py`, siden logikken er lik for begge lagringene.
+- **Kjent og ikke rettet:** det finnes ingen `favicon.ico` (404 i loggen), og toppmenyen brytes over to linjer på smale skjermer når admin er innlogget. Begge deler fantes i Oblig 4.

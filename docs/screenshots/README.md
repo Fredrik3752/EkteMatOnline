@@ -24,3 +24,12 @@ Alle personer, ordrer og adresser er oppdiktet.
 | [09-admin-ordreliste.jpg](09-admin-ordreliste.jpg) | Ordreliste med filter på status og eventdato | A3 |
 | [10-admin-ordre.jpg](10-admin-ordre.jpg) | Ordreside med lovlige statusknapper og betalingsstatus | A3 |
 | [11-admin-sporsmal.jpg](11-admin-sporsmal.jpg) | Ubesvarte spørsmål med svarskjema | A4 |
+
+## Neo4j (Oblig 5)
+
+Tatt i Neo4j Browser (http://localhost:7474) mot utviklingsdatabasen etter nettlesertesten i fase N4.
+
+| Fil | Innhold |
+|---|---|
+| [12-neo4j-ordre-graf.jpg](12-neo4j-ordre-graf.jpg) | Ordre 5 som graf: kunde, ordre, ordrelinjer → retter, gjestegrupper, spørsmål med svar fra admin |
+| [13-neo4j-skjema.jpg](13-neo4j-skjema.jpg) | `CALL db.schema.visualization()`: 11 node-typer og 10 relasjonstyper |
