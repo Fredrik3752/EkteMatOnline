@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Bestilling {{ order.id }} · Ekte Mat Online{% endblock %}
+
+{% block content %}
+<h1>Bestilling nr. {{ order.id }} er sendt inn</h1>
+<p>Vi har mottatt bestillingen og gir beskjed når den er godkjent.</p>
+
+<dl class="facts">
+  <div><dt>Status</dt><dd><span class="badge badge-{{ order.status.value }}">{{ order.status.label }}</span></dd></div>
+  <div><dt>Betaling</dt><dd>{{ order.payment_status.label }}</dd></div>
+  <div><dt>Dato</dt><dd>{{ order.event_date.strftime('%d.%m.%Y') }}</dd></div>
+  <div><dt>Gjester</dt><dd>{{ order.guest_count }}</dd></div>
+  <div><dt>Levering</dt><dd class="pre">{{ order.delivery_address }}</dd></div>
+</dl>
+
+<h2>Retter</h2>
+<div class="table-wrap">
+<table class="table">
+  <thead><tr><th>Rett</th><th class="num">Antall</th><th class="num">Pris</th><th class="num">Sum</th></tr></thead>
+  <tbody>
+    {% for line in order.lines %}
+    <tr>
+      <td>{{ line.item_name }}</td>
+      <td class="num">{{ line.quantity }}</td>
+      <td class="num nowrap">{{ line.unit_price_ore|nok }}</td>
+      <td class="num nowrap">{{ line.line_total_ore|nok }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <tfoot><tr><th colspan="3">Estimert total</th><th class="num nowrap">{{ order.total_display }}</th></tr></tfoot>
+</table>
+</div>
+
+<h2>Gjestegrupper</h2>
+<div class="table-wrap">
+<table class="table">
+  <thead><tr><th>Gruppe</th><th class="num">Antall</th><th>Allergier</th><th>Kosthold</th></tr></thead>
+  <tbody>
+    {% for group in order.guest_groups %}
+    <tr>
+      <td>{{ group.description }}</td>
+      <td class="num">{{ group.guest_count }}</td>
+      <td>{% if group.allergy_notes %}<span class="allergy">{{ group.allergy_notes }}</span>{% else %}–{% endif %}</td>
+      <td>{{ group.dietary_notes or '–' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% if order.notes %}<h2>Kommentar</h2><p class="pre">{{ order.notes }}</p>{% endif %}
+
+<p><a class="button" href="{{ url_for('shop.menu') }}">Tilbake til menyen</a></p>
+{% endblock %}

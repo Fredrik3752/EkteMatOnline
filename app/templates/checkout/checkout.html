@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Bestilling · Ekte Mat Online{% endblock %}
+
+{% macro error(name) -%}
+  {% if errors.get(name) %}<p class="field-error" id="{{ name }}-error">{{ errors[name] }}</p>{% endif %}
+{%- endmacro %}
+{% macro invalid(name) -%}
+  {% if errors.get(name) %}aria-invalid="true" aria-describedby="{{ name }}-error"{% endif %}
+{%- endmacro %}
+
+{% block content %}
+<h1>Send bestilling</h1>
+{% if errors %}<div class="flash flash-error" role="alert">Rett opp feltene som er markert.</div>{% endif %}
+
+<div class="checkout-layout">
+  <form class="admin-form" method="post" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <h2>Arrangement</h2>
+    <div class="form-grid">
+      <div>
+        <label for="event_date">Dato for arrangementet</label>
+        <input id="event_date" name="event_date" type="date" min="{{ min_date }}"
+               value="{{ form.get('event_date', '') }}" required {{ invalid('event_date') }}>
+        {{ error('event_date') }}
+      </div>
+      <div>
+        <label for="guest_count">Antall gjester</label>
+        <input id="guest_count" name="guest_count" type="number" min="1" step="1" inputmode="numeric"
+               value="{{ form.get('guest_count', '') }}" required {{ invalid('guest_count') }}>
+        {{ error('guest_count') }}
+      </div>
+      <div class="span-2">
+        <label for="delivery_address">Leveringsadresse</label>
+        <textarea id="delivery_address" name="delivery_address" rows="2" autocomplete="street-address"
+                  required {{ invalid('delivery_address') }}>{{ form.get('delivery_address', '') }}</textarea>
+        {{ error('delivery_address') }}
+      </div>
+    </div>
+
+    <h2>Gjestegrupper, allergier og kosthold</h2>
+    <p class="muted small">Del gjestene i grupper og skriv allergier og kosthold per gruppe, f.eks.
+      «Barn», «Nøtteallergi» eller «Vegetarianere». Ikke skriv navn på gjester.</p>
+    {{ error('guest_groups') }}
+    <div id="guest-groups" class="guest-groups">
+      {% for description, count, allergies, diets in group_rows %}
+      <fieldset class="guest-group">
+        <legend>Gruppe {{ loop.index }}</legend>
+        <div class="guest-group-grid">
+          <div>
+            <label for="gd-{{ loop.index }}">Beskrivelse</label>
+            <input id="gd-{{ loop.index }}" name="group_description" value="{{ description }}" placeholder="f.eks. Voksne">
+          </div>
+          <div>
+            <label for="gc-{{ loop.index }}">Antall</label>
+            <input id="gc-{{ loop.index }}" name="group_count" type="number" min="1" step="1" inputmode="numeric" value="{{ count }}">
+          </div>
+          <div>
+            <label for="ga-{{ loop.index }}">Allergier</label>
+            <input id="ga-{{ loop.index }}" name="group_allergies" value="{{ allergies }}" placeholder="f.eks. nøtter, gluten">
+          </div>
+          <div>
+            <label for="gk-{{ loop.index }}">Kosthold</label>
+            <input id="gk-{{ loop.index }}" name="group_diets" value="{{ diets }}" placeholder="f.eks. vegetar">
+          </div>
+        </div>
+      </fieldset>
+      {% endfor %}
+    </div>
+    <button type="button" id="add-group" class="text-button" hidden>+ Legg til gjestegruppe</button>
+
+    <h2>Annet</h2>
+    <label for="notes">Kommentar til Ekte Mat <span class="muted">(valgfritt)</span></label>
+    <textarea id="notes" name="notes" rows="3" placeholder="f.eks. tidspunkt for servering">{{ form.get('notes', '') }}</textarea>
+
+    <div class="form-actions">
+      <button type="submit" class="button">Send bestilling</button>
+      <a href="{{ url_for('cart.view') }}">Tilbake til handlekurven</a>
+    </div>
+    <p class="muted small">Ingen betaling nå. Ekte Mat bekrefter bestillingen og sender faktura eller betalingsinformasjon.</p>
+  </form>
+
+  <aside class="order-summary" aria-label="Oppsummering">
+    <h2>Oppsummering</h2>
+    <ul>
+      {% for line in cart.lines %}
+        <li><span>{{ line.quantity }} × {{ line.item.name }}</span><span class="nowrap">{{ line.line_total_ore|nok }}</span></li>
+      {% endfor %}
+    </ul>
+    <p class="summary-total"><span>Estimert total</span><strong class="nowrap">{{ cart.total_display }}</strong></p>
+  </aside>
+</div>
+
+<script>
+  // Progressive enhancement: add more guest-group rows. The form works without this.
+  (function () {
+    var button = document.getElementById("add-group");
+    var container = document.getElementById("guest-groups");
+    button.hidden = false;
+    button.addEventListener("click", function () {
+      var groups = container.querySelectorAll(".guest-group");
+      var copy = groups[groups.length - 1].cloneNode(true);
+      var n = groups.length + 1;
+      copy.querySelector("legend").textContent = "Gruppe " + n;
+      copy.querySelectorAll("input").forEach(function (input) {
+        input.value = "";
+        input.id = input.id.replace(/-\d+$/, "-" + n);
+      });
+      copy.querySelectorAll("label").forEach(function (label) {
+        label.htmlFor = label.htmlFor.replace(/-\d+$/, "-" + n);
+      });
+      container.appendChild(copy);
+      copy.querySelector("input").focus();
+    });
+  })();
+</script>
+{% endblock %}

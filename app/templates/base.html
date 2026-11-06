@@ -13,6 +13,7 @@
       <nav class="main-nav">
         <a href="{{ url_for('shop.index') }}">Forside</a>
         <a href="{{ url_for('shop.menu') }}">Meny</a>
+        <a href="{{ url_for('cart.view') }}">Handlekurv{% if cart_count() %} <span class="cart-count">{{ cart_count() }}</span>{% endif %}</a>
         {% if g.user %}
           {% if g.user.is_admin %}<a href="{{ url_for('admin.index') }}">Admin</a>{% endif %}
           <span class="nav-user">{{ g.user.name }}</span>

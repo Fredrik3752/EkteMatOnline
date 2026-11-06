@@ -16,8 +16,11 @@ def load_logged_in_user():
 
 
 def log_in(user):
+    cart = session.get("cart")  # keep the shopping cart across login
     session.clear()  # prevents session fixation
     session["user_id"] = user.id
+    if cart:
+        session["cart"] = cart
     g.user = user
 
 

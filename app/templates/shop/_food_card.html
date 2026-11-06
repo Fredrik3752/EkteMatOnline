@@ -28,5 +28,17 @@
       {% for label in item.dietary_labels %}<span class="chip chip-diet">{{ label.name }}</span>{% endfor %}
     </div>
     {% endif %}
+
+    <form class="add-to-cart" method="post" action="{{ url_for('cart.add') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="item_id" value="{{ item.id }}">
+      <input type="hidden" name="next" value="{{ request.path }}">
+      {# The same item can appear in several sections on /meny, so include the section in the id. #}
+      {% set field_id = 'qty-' ~ (category.slug if category is defined else 'item') ~ '-' ~ item.id %}
+      <label class="visually-hidden" for="{{ field_id }}">Antall {{ item.name }}</label>
+      <input id="{{ field_id }}" name="quantity" type="number" inputmode="numeric"
+             min="1" step="1" value="{{ item.min_order_qty }}">
+      <button type="submit" class="button">Legg i handlekurv</button>
+    </form>
   </div>
 </article>

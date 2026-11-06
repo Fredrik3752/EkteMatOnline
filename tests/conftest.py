@@ -65,3 +65,28 @@ def customer(make_user):
 @pytest.fixture
 def admin(make_user):
     return make_user("admin@example.test", "Test Admin", ROLE_ADMIN)
+
+
+@pytest.fixture
+def menu_items(app):
+    """Two published items and one unpublished, for cart/checkout tests."""
+    from app.models.food_item import FoodItem
+    from app.models.repositories.event_category_repository import EventCategoryRepository
+    from app.models.repositories.food_item_repository import FoodItemRepository
+
+    with app.app_context():
+        wedding = EventCategoryRepository().get_by_slug("wedding")
+        repo = FoodItemRepository()
+        return {
+            "suppe": repo.add(FoodItem(name="Fiskesuppe", price_ore=18900, min_order_qty=10,
+                                       is_published=True, categories=[wedding])),
+            "kake": repo.add(FoodItem(name="Bløtkake", price_ore=69000, min_order_qty=1,
+                                      is_published=True, categories=[wedding])),
+            "kladd": repo.add(FoodItem(name="Kladd", price_ore=1000, min_order_qty=1,
+                                       is_published=False, categories=[wedding])),
+        }
+
+
+def cart_in_session(client):
+    with client.session_transaction() as sess:
+        return dict(sess.get("cart", {}))

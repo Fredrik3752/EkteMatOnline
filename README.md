@@ -61,6 +61,8 @@ flask --app app run --debug
 | Forside | `/` |
 | Meny (alle arrangementer) | `/meny` |
 | Meny for ett arrangement | `/meny/<slug>`, f.eks. `/meny/wedding` |
+| Handlekurv | `/handlekurv` |
+| Bestilling (krever innlogging) | `/bestilling` |
 | Registrer deg | `/registrer` |
 | Logg inn | `/logg-inn` |
 | Administrasjon (kun admin) | `/admin/` |
