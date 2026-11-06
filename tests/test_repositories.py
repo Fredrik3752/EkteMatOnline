@@ -7,7 +7,6 @@ from app.models.event_category import EventCategory
 from app.models.food_item import FoodItem
 from app.models.order import GuestGroup, Order, OrderLine, OrderStatus, PaymentStatus
 from app.models.question import Question
-from app.models.repositories.sqlite.database import get_db
 from app.models.repositories.event_category_repository import EventCategoryRepository
 from app.models.repositories.food_item_repository import FoodItemRepository
 from app.models.repositories.order_repository import OrderRepository
@@ -15,12 +14,46 @@ from app.models.repositories.question_repository import QuestionRepository
 from app.models.repositories.reference_repository import AllergenRepository, DietaryLabelRepository
 from app.models.repositories.user_repository import UserRepository
 from app.models.user import User
+from tests.conftest import close_app, make_test_app
+
+# Contract tests: every test in this module runs against BOTH storage backends.
+# The Neo4j variant is skipped if the neo4j-test container is not running.
+
+
+@pytest.fixture(params=["sqlite", "neo4j"])
+def app(request, tmp_path):
+    app = make_test_app(tmp_path, request.param)
+    yield app
+    close_app(app)
 
 
 @pytest.fixture
 def ctx(app):
     with app.app_context():
         yield
+
+
+def raw_count(what):
+    """Count stored rows/nodes/relationships directly in the active backend."""
+    from app.models.repositories.backend import backend_name
+    if backend_name() == "sqlite":
+        from app.models.repositories.sqlite.database import get_db
+        table = {"orders": "orders", "order_lines": "order_lines", "allergen_links": "food_item_allergens",
+                 "guest_groups": "guest_groups"}[what]
+        return get_db().execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+    from app.models.repositories.neo4j.driver import read
+    pattern = {"orders": "(:Order)", "order_lines": "(:OrderLine)", "guest_groups": "(:GuestGroup)",
+               "allergen_links": "(:FoodItem)-[:CONTAINS]->(:Allergen)"}[what]
+    return read(f"MATCH p = {pattern} RETURN count(p) AS n")[0]["n"]
+
+
+def stored_order_total():
+    from app.models.repositories.backend import backend_name
+    if backend_name() == "sqlite":
+        from app.models.repositories.sqlite.database import get_db
+        return get_db().execute("SELECT estimated_total_ore FROM orders").fetchone()[0]
+    from app.models.repositories.neo4j.driver import read
+    return read("MATCH (o:Order) RETURN o.estimated_total_ore AS t")[0]["t"]
 
 
 @pytest.fixture
@@ -101,7 +134,7 @@ def test_food_item_crud_with_links(ctx):
     assert repo.delete(item.id) is True
     assert repo.get(item.id) is None
     assert repo.delete(item.id) is False
-    assert get_db().execute("SELECT COUNT(*) FROM food_item_allergens").fetchone()[0] == 0
+    assert raw_count("allergen_links") == 0
 
 
 def test_invalid_food_item_is_not_saved(ctx):
@@ -139,17 +172,20 @@ def test_order_roundtrip(customer):
     assert order.total_ore == 20 * 18900
     assert order.lines[0].item_name == "Fiskesuppe"
     assert order.guest_groups[0].allergy_notes == "Nøtter"
-    stored_total = get_db().execute("SELECT estimated_total_ore FROM orders").fetchone()[0]
-    assert stored_total == order.total_ore
+    assert stored_order_total() == order.total_ore
 
 
-def test_order_with_invalid_line_rolls_back(customer):
+def test_order_with_invalid_line_is_not_saved(customer):
     bad = make_order(customer.id, lines=[OrderLine("A", 1, 100), OrderLine("B", 1, -5)])
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         OrderRepository().add(bad)
-    db = get_db()
-    assert db.execute("SELECT COUNT(*) FROM orders").fetchone()[0] == 0
-    assert db.execute("SELECT COUNT(*) FROM order_lines").fetchone()[0] == 0
+    assert raw_count("orders") == 0 and raw_count("order_lines") == 0
+
+
+def test_order_for_unknown_customer_saves_nothing(ctx):
+    with pytest.raises(Exception):
+        OrderRepository().add(make_order(customer_id=999))
+    assert raw_count("orders") == 0 and raw_count("order_lines") == 0 and raw_count("guest_groups") == 0
 
 
 def test_order_filters(customer):
@@ -207,3 +243,84 @@ def test_empty_question_is_rejected(customer):
     order = OrderRepository().add(make_order(customer.id))
     with pytest.raises(ValidationError):
         QuestionRepository().add(Question(order_id=order.id, author_id=customer.id, body=" "))
+
+
+# -- extra contract checks (ordering and edge cases both backends must agree on) ---------
+
+def test_user_get_many_and_ordering(ctx):
+    repo = UserRepository()
+    b = repo.add(User.create("b@example.test", "Bente", "passord-123"))
+    a = repo.add(User.create("a@example.test", "Anders", "passord-123"))
+    repo.add(User.create("admin@example.test", "Admin", "passord-123", role="admin"))
+    assert [u.name for u in repo.list_customers()] == ["Anders", "Bente"]
+    assert set(repo.get_many([a.id, b.id, 999])) == {a.id, b.id}
+    assert repo.get_many([]) == {} and repo.get(999) is None
+    assert a.created_at and len(a.created_at) == 19
+
+
+def test_reference_lists(ctx):
+    assert [a.code for a in AllergenRepository().list_all()][:3] == ["gluten", "crustaceans", "eggs"]
+    assert len(AllergenRepository().list_all()) == 14
+    assert [d.code for d in DietaryLabelRepository().list_all()][0] == "vegetarian"
+
+
+def test_food_items_sorted_by_name_and_category_filter(ctx):
+    repo = FoodItemRepository()
+    cats = lookup(EventCategoryRepository())
+    repo.add(make_item(name="Ølbrød", categories=[cats["birthday"]]))
+    repo.add(make_item(name="Bløtkake", categories=[cats["birthday"]]))
+    repo.add(make_item(name="Bryllupskake", categories=[cats["wedding"]]))
+    repo.add(make_item(name="Skjult", categories=[cats["birthday"]], published=False))
+    assert [i.name for i in repo.list_all()] == ["Bløtkake", "Bryllupskake", "Skjult", "Ølbrød"]
+    assert [i.name for i in repo.list_published_in_category(cats["birthday"].id)] == ["Bløtkake", "Ølbrød"]
+    assert repo.list_published_in_category(cats["memorial"].id) == []
+
+
+def test_food_item_without_links(ctx):
+    item = FoodItemRepository().add(make_item(categories=[], allergens=[], dietary_labels=[], origin=None))
+    assert item.categories == [] and item.allergens == [] and item.dietary_labels == []
+    assert item.origin is None and item.image_path is None
+
+
+def test_deleted_item_keeps_order_line(customer):
+    item = FoodItemRepository().add(make_item())
+    order = OrderRepository().add(make_order(
+        customer.id, lines=[OrderLine(item.name, 12, item.price_ore, food_item_id=item.id)]))
+    assert order.lines[0].food_item_id == item.id
+    FoodItemRepository().delete(item.id)
+    line = OrderRepository().get(order.id).lines[0]
+    assert (line.food_item_id, line.item_name, line.unit_price_ore) == (None, "Fiskesuppe", 18900)
+
+
+def test_order_lines_and_groups_keep_their_order(customer):
+    lines = [OrderLine(f"Rett {i}", i, 100 * i) for i in range(1, 6)]
+    groups = [GuestGroup(f"Gruppe {i}", 1) for i in range(1, 4)]
+    order = OrderRepository().add(make_order(customer.id, lines=lines, guest_groups=groups))
+    assert [l.item_name for l in order.lines] == [f"Rett {i}" for i in range(1, 6)]
+    assert [g.description for g in order.guest_groups] == ["Gruppe 1", "Gruppe 2", "Gruppe 3"]
+
+
+def test_orders_for_customer_newest_event_first(customer):
+    repo = OrderRepository()
+    old = repo.add(make_order(customer.id, event_date=date(2027, 1, 1)))
+    new = repo.add(make_order(customer.id, event_date=date(2027, 9, 1)))
+    same_day = repo.add(make_order(customer.id, event_date=date(2027, 9, 1)))
+    assert [o.id for o in repo.list_for_customer(customer.id)] == [same_day.id, new.id, old.id]
+    assert repo.get(999) is None
+
+
+def test_question_ordering_and_count(customer):
+    order = OrderRepository().add(make_order(customer.id))
+    repo = QuestionRepository()
+    q1 = repo.add(Question(order_id=order.id, author_id=customer.id, body="Første"))
+    q2 = repo.add(Question(order_id=order.id, author_id=customer.id, body="Andre"))
+    assert [q.id for q in repo.list_for_order(order.id)] == [q1.id, q2.id]
+    assert [q.id for q in repo.list_all()] == [q2.id, q1.id]
+    assert repo.count_unanswered() == 2
+    assert repo.get(q1.id).author_id == customer.id and repo.get(999) is None
+
+
+def test_question_for_unknown_order_is_rejected(customer):
+    with pytest.raises(Exception):
+        QuestionRepository().add(Question(order_id=999, author_id=customer.id, body="Hei"))
+    assert QuestionRepository().list_all() == []

@@ -160,6 +160,9 @@ class Order:
             errors["lines"] = "Bestillingen må inneholde minst én vare."
         elif any(line.quantity < 1 for line in self.lines):
             errors["lines"] = "Antall må være minst 1."
+        elif any(not isinstance(line.unit_price_ore, int) or line.unit_price_ore < 0 for line in self.lines):
+            # Also a CHECK in SQLite – Neo4j has no CHECK constraints, so the rule lives here.
+            errors["lines"] = "Prisen på en ordrelinje kan ikke være negativ."
         for group in self.guest_groups:
             if not (group.description or "").strip() or group.guest_count < 1:
                 errors["guest_groups"] = "Hver gjestegruppe må ha beskrivelse og minst 1 gjest."

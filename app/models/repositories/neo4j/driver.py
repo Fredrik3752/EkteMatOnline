@@ -1,5 +1,6 @@
 """Neo4j connection handling: one driver per Flask app, short sessions per repository call."""
 import atexit
+from datetime import datetime, timezone
 from typing import Any, Callable, List
 
 from flask import current_app
@@ -53,6 +54,11 @@ def write(work: Callable, *args: Any) -> Any:
     """Run `work(tx, *args)` in ONE write transaction – committed together or rolled back together."""
     with get_driver().session(database=database_name()) as session:
         return session.execute_write(work, *args)
+
+
+def utc_now() -> str:
+    """Same timestamp format as SQLite's CURRENT_TIMESTAMP (UTC), so |local_time works for both."""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def next_id(tx, counter: str, count: int = 1) -> int:

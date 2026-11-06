@@ -12,6 +12,13 @@ from app.models.repositories.reference_repository import AllergenRepository, Die
 from app.models.repositories.sqlite import REPOSITORIES as SQLITE_REPOSITORIES
 from app.models.repositories.user_repository import UserRepository
 
+
+@pytest.fixture
+def app(sqlite_app):
+    """Default-backend tests always run on SQLite, whatever TEST_STORAGE_BACKEND says."""
+    return sqlite_app
+
+
 PUBLIC = {
     "EventCategoryRepository": (EventCategoryRepository, base.EventCategoryRepositoryBase),
     "AllergenRepository": (AllergenRepository, base.AllergenRepositoryBase),
@@ -24,7 +31,14 @@ PUBLIC = {
 
 
 def test_sqlite_is_the_default(app):
+    """No STORAGE_BACKEND configured -> SQLite; and .env.example ships with sqlite."""
+    app.config["STORAGE_BACKEND"] = None
     assert backend_name(app) == "sqlite"
+    app.config["STORAGE_BACKEND"] = ""
+    assert backend_name(app) == "sqlite"
+    from pathlib import Path
+    example = (Path(__file__).resolve().parent.parent / ".env.example").read_text(encoding="utf-8")
+    assert "\nSTORAGE_BACKEND=sqlite\n" in example
 
 
 @pytest.mark.parametrize("name", sorted(PUBLIC))

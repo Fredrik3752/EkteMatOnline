@@ -21,7 +21,7 @@ def test_reset_creates_marker_reference_data_and_counters(neo4j_app):
         assert counters == {"EventCategory": 7, "Allergen": 14, "DietaryLabel": 5}
 
 
-def test_reference_data_matches_sqlite(neo4j_app, app):
+def test_reference_data_matches_sqlite(neo4j_app, sqlite_app):
     """Same ids, codes and names in both backends – forms post these ids."""
     with neo4j_app.app_context():
         neo = {
@@ -29,7 +29,7 @@ def test_reference_data_matches_sqlite(neo4j_app, app):
             "all": [tuple(r) for r in read("MATCH (a:Allergen) RETURN a.id, a.code, a.name ORDER BY a.id")],
             "diet": [tuple(r) for r in read("MATCH (d:DietaryLabel) RETURN d.id, d.code, d.name ORDER BY d.id")],
         }
-    with app.app_context():
+    with sqlite_app.app_context():
         db = sqlite_db.get_db()
         sql = {
             "cat": [tuple(r) for r in db.execute("SELECT id, slug, name, sort_order FROM event_categories ORDER BY id")],
@@ -120,8 +120,12 @@ def test_unreachable_server_gives_clear_error(tmp_path):
                     "NEO4J_PASSWORD": "x", "DATABASE": str(tmp_path / "x.db")})
 
 
-def test_repositories_not_yet_implemented_fail_clearly(neo4j_app):
+def test_neo4j_backend_implements_every_contract(neo4j_app):
+    from app.models.repositories.neo4j import REPOSITORIES
+    from app.models.repositories.sqlite import REPOSITORIES as SQLITE
     from app.models.repositories.order_repository import OrderRepository
+    assert set(REPOSITORIES) == set(SQLITE)
+    for name, cls in REPOSITORIES.items():
+        assert not getattr(cls, "__abstractmethods__", None), f"{name} misses methods"
     with neo4j_app.app_context():
-        with pytest.raises(NotImplementedError, match="OrderRepository"):
-            OrderRepository()
+        assert type(OrderRepository()).__name__ == "Neo4jOrderRepository"

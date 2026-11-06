@@ -77,6 +77,14 @@ def app(tmp_path):
 
 
 @pytest.fixture
+def sqlite_app(tmp_path):
+    """Always SQLite – for tests of SQLite itself (schema, CHECK constraints, raw SQL)."""
+    app = make_test_app(tmp_path, "sqlite")
+    yield app
+    close_app(app)
+
+
+@pytest.fixture
 def neo4j_app(tmp_path):
     """Always Neo4j (the test container) – for Neo4j-specific tests. Skipped if it is not running."""
     app = make_test_app(tmp_path, "neo4j")

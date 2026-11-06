@@ -4,6 +4,13 @@ import pytest
 
 from app.models.repositories.sqlite.database import get_db
 
+
+@pytest.fixture
+def app(sqlite_app):
+    """SQLite schema tests always run on SQLite, whatever TEST_STORAGE_BACKEND says."""
+    return sqlite_app
+
+
 EXPECTED_TABLES = {
     "users", "event_categories", "allergens", "dietary_labels", "food_items",
     "food_item_categories", "food_item_allergens", "food_item_dietary_labels",

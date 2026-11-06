@@ -4,7 +4,6 @@ from datetime import date
 import pytest
 
 from app.models.order import Order, OrderLine
-from app.models.repositories.sqlite.database import get_db
 from app.models.repositories.event_category_repository import EventCategoryRepository
 from app.models.repositories.food_item_repository import FoodItemRepository
 from app.models.repositories.order_repository import OrderRepository
@@ -197,7 +196,7 @@ def test_deleted_item_stays_on_existing_orders(app, admin_client, customer, ids)
     with app.app_context():
         line = OrderRepository().get(order.id).lines[0]
         assert line.item_name == "Lam" and line.unit_price_ore == 24500 and line.food_item_id is None
-        assert get_db().execute("SELECT COUNT(*) FROM orders").fetchone()[0] == 1
+        assert [o.id for o in OrderRepository().list()] == [order.id]
 
 
 @pytest.mark.parametrize("method, url", [
