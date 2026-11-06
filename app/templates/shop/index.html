@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+  <h1>Ekte, sesongbasert mat til ditt arrangement</h1>
+  <p>Catering fra Bergen med råvarer fra lokale gårder og båter. Se menyene, sett sammen
+     bestillingen og send den inn når det passer deg.</p>
+</section>
+
+<section>
+  <h2>Hva skal du arrangere?</h2>
+  {% if categories %}
+    <ul class="category-grid">
+      {% for category in categories %}
+        <li class="category-card">{{ category.name }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Ingen arrangementstyper er registrert ennå.</p>
+  {% endif %}
+</section>
+{% endblock %}

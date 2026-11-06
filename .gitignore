@@ -1,0 +1,19 @@
+# Kildemateriale og oppgavetekst – skal aldri i Git
+EkteMat_project_inbox 2/
+INFO212_Oblig4_EkteMat_Claude_Code.pdf
+
+# Hemmeligheter og lokalt miljø
+.env
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Database og kjøredata
+*.db
+instance/
+
+# macOS
+.DS_Store
