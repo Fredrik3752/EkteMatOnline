@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Any, Callable, List
 
 from flask import current_app
-from neo4j import Driver, GraphDatabase, Record, RoutingControl
+from neo4j import Driver, GraphDatabase, NotificationDisabledCategory, Record, RoutingControl
 from neo4j.exceptions import AuthError, ServiceUnavailable
 
 EXTENSION_KEY = "neo4j_driver"
@@ -16,7 +16,12 @@ class Neo4jUnavailable(RuntimeError):
 
 def create_driver(app) -> Driver:
     cfg = app.config
-    driver = GraphDatabase.driver(cfg["NEO4J_URI"], auth=(cfg["NEO4J_USER"], cfg["NEO4J_PASSWORD"]))
+    driver = GraphDatabase.driver(
+        cfg["NEO4J_URI"], auth=(cfg["NEO4J_USER"], cfg["NEO4J_PASSWORD"]),
+        # "Relationship type not in database yet" is expected on a fresh graph (e.g. before the
+        # first answer exists). Deprecation and performance warnings are still reported.
+        notifications_disabled_categories=[NotificationDisabledCategory.UNRECOGNIZED],
+    )
     app.extensions[EXTENSION_KEY] = driver
     atexit.register(driver.close)
     return driver

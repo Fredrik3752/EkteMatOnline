@@ -129,3 +129,14 @@ def test_neo4j_backend_implements_every_contract(neo4j_app):
         assert not getattr(cls, "__abstractmethods__", None), f"{name} misses methods"
     with neo4j_app.app_context():
         assert type(OrderRepository()).__name__ == "Neo4jOrderRepository"
+
+
+def test_seed_runs_without_neo4j_warnings(neo4j_app, caplog):
+    """Guards against deprecated Cypher (the server reports it as a notification)."""
+    import logging
+    from app.seed import seed_database
+    with caplog.at_level(logging.WARNING, logger="neo4j"):
+        with neo4j_app.app_context():
+            seed_database()
+    notifications = [r.getMessage()[:160] for r in caplog.records if "notification" in r.getMessage().lower()]
+    assert notifications == []

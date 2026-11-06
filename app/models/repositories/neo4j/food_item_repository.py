@@ -25,16 +25,13 @@ ORDER BY f.name, f.id
 
 _LINKS = """
 WITH f
-CALL {
-  WITH f
+CALL (f) {
   UNWIND $category_ids AS cid MATCH (c:EventCategory {id: cid}) CREATE (f)-[:SUITABLE_FOR]->(c)
 }
-CALL {
-  WITH f
+CALL (f) {
   UNWIND $allergen_ids AS aid MATCH (a:Allergen {id: aid}) CREATE (f)-[:CONTAINS]->(a)
 }
-CALL {
-  WITH f
+CALL (f) {
   UNWIND $diet_ids AS did MATCH (d:DietaryLabel {id: did}) CREATE (f)-[:HAS_LABEL]->(d)
 }
 """
