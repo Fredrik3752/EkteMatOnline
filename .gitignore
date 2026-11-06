@@ -17,3 +17,6 @@ instance/
 
 # macOS
 .DS_Store
+
+# Lokal oppstartskonfig for Claude-forhåndsvisning
+.claude/launch.json

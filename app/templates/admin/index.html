@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Admin · Ekte Mat Online{% endblock %}
+
+{% block content %}
+<h1>Administrasjon</h1>
+<p class="muted">Oversikt for Ekte Mat-ansatte. Sidene for matretter, bilder, ordrer og spørsmål kommer i neste faser.</p>
+
+<div class="stat-grid">
+  <div class="stat"><span class="stat-value">{{ order_total }}</span><span class="stat-label">Ordrer totalt</span></div>
+  <div class="stat"><span class="stat-value">{{ unanswered }}</span><span class="stat-label">Ubesvarte spørsmål</span></div>
+  <div class="stat"><span class="stat-value">{{ published_total }} / {{ item_total }}</span><span class="stat-label">Publiserte matretter</span></div>
+</div>
+
+<h2>Ordrer per status</h2>
+<table class="table">
+  <thead><tr><th>Status</th><th class="num">Antall</th></tr></thead>
+  <tbody>
+    {% for status, count in status_counts.items() %}
+      <tr><td><span class="badge badge-{{ status.value }}">{{ status.label }}</span></td><td class="num">{{ count }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

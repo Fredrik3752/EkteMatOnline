@@ -12,7 +12,7 @@ Python 3.9+, Flask 3.1, Jinja2, SQLite (`sqlite3`), pytest. Ingen betalte API-er
 ## MVC-oppsett
 - `app/models/` – domeneklasser (dataclasses) med forretningsregler: `FoodItem`, `Order` (tilstandsmaskin for `OrderStatus`), `PaymentStatus`, `GuestGroup`, `Question`, `User`. Regelbrudd gir `ValidationError` / `InvalidStatusTransition`.
 - `app/models/repositories/` – **eneste** sted som rører SQLite (`database.py`, `schema.sql`, `*_repository.py`). Skal kunne byttes mot Neo4j i oblig 5.
-- `app/controllers/` – Flask-blueprints (`shop`, senere `account`, `admin`). Kaller repositories, rendrer maler.
+- `app/controllers/` – Flask-blueprints `shop`, `account` (registrer/logg inn/ut) og `admin` (`/admin`). Kaller repositories, rendrer maler. `auth.py` gir `g.user`, `@login_required` og `@admin_required`; `csrf.py` sjekker token på alle POST.
 - `app/templates/` – Jinja2-views; `app/static/` – CSS/JS/bilder.
 
 ## Kommandoer
@@ -33,5 +33,7 @@ pytest
 - Kun syntetiske data. Ikke les, kopier eller commit noe fra `EkteMat_project_inbox 2/` eller oppgave-PDF-en.
 - Ingen hemmeligheter i Git: bruk `.env` (ignorert), dokumenter nøkler i `.env.example`.
 - Større funksjoner planlegges først i plan mode; planen lagres i `docs/plans/NN-navn.md` før koding.
+- Alle skjemaer med POST har `<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">`. Admin-ruter har `@admin_required`.
+- Tester bruker `post()`/`login()` fra `tests/conftest.py` (setter CSRF-token).
 - Ny funksjonalitet får tester i `tests/`; `pytest` skal være grønn før commit.
 - Kode og kommentarer på engelsk, brukergrensesnitt på norsk.

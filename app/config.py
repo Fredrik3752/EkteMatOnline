@@ -7,3 +7,5 @@ class Config:
     # Relative paths are resolved against the Flask instance folder.
     DATABASE = os.environ.get("DATABASE", "ektemat.db")
     TESTING = False
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"

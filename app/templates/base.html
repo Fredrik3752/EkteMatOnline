@@ -12,6 +12,17 @@
       <a class="brand" href="{{ url_for('shop.index') }}">Ekte Mat</a>
       <nav class="main-nav">
         <a href="{{ url_for('shop.index') }}">Forside</a>
+        {% if g.user %}
+          {% if g.user.is_admin %}<a href="{{ url_for('admin.index') }}">Admin</a>{% endif %}
+          <span class="nav-user">{{ g.user.name }}</span>
+          <form class="inline-form" method="post" action="{{ url_for('account.logout') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="link-button">Logg ut</button>
+          </form>
+        {% else %}
+          <a href="{{ url_for('account.login') }}">Logg inn</a>
+          <a href="{{ url_for('account.register') }}">Registrer deg</a>
+        {% endif %}
       </nav>
     </div>
   </header>

@@ -24,7 +24,20 @@ def create_app(test_config=None):
     from app.seed import seed_command
     app.cli.add_command(seed_command)
 
-    from app.controllers.shop import bp as shop_bp
-    app.register_blueprint(shop_bp)
+    from app.controllers import account, admin, shop
+    from app.controllers.auth import load_logged_in_user
+    from app.controllers.csrf import check_csrf, csrf_token
+    from app.controllers.errors import register_error_handlers
+    from app.models.money import format_nok
+
+    app.before_request(load_logged_in_user)
+    app.before_request(check_csrf)
+    app.jinja_env.globals["csrf_token"] = csrf_token
+    app.jinja_env.filters["nok"] = format_nok
+    register_error_handlers(app)
+
+    app.register_blueprint(shop.bp)
+    app.register_blueprint(account.bp)
+    app.register_blueprint(admin.bp)
 
     return app

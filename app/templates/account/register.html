@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Registrer deg · Ekte Mat Online{% endblock %}
+
+{% macro field(name, label, type="text", autocomplete="", required=true) %}
+  <label for="{{ name }}">{{ label }}{% if not required %} <span class="muted">(valgfritt)</span>{% endif %}</label>
+  <input id="{{ name }}" name="{{ name }}" type="{{ type }}"
+         {% if type != "password" %}value="{{ form.get(name, '') }}"{% endif %}
+         {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
+         {% if required %}required{% endif %}
+         {% if errors.get(name) %}aria-invalid="true" aria-describedby="{{ name }}-error"{% endif %}>
+  {% if errors.get(name) %}<p class="field-error" id="{{ name }}-error">{{ errors[name] }}</p>{% endif %}
+{% endmacro %}
+
+{% block content %}
+<section class="form-card">
+  <h1>Registrer deg</h1>
+  <p class="muted">Du trenger en konto for å sende inn bestillinger og følge dem opp.</p>
+  {% if errors %}<div class="flash flash-error" role="alert">Rett opp feltene som er markert.</div>{% endif %}
+  <form method="post" action="{{ url_for('account.register') }}" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="next" value="{{ next }}">
+    {{ field("name", "Navn", autocomplete="name") }}
+    {{ field("email", "E-post", type="email", autocomplete="email") }}
+    {{ field("phone", "Telefon", type="tel", autocomplete="tel", required=false) }}
+    {{ field("password", "Passord (minst 8 tegn)", type="password", autocomplete="new-password") }}
+    {{ field("password_confirm", "Gjenta passord", type="password", autocomplete="new-password") }}
+    <button type="submit" class="button">Opprett konto</button>
+  </form>
+  <p class="muted">Har du konto? <a href="{{ url_for('account.login', next=next or None) }}">Logg inn</a></p>
+</section>
+{% endblock %}

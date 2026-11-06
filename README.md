@@ -56,6 +56,13 @@ flask --app app run --debug
 
 Åpne http://127.0.0.1:5000.
 
+| Side | Adresse |
+|---|---|
+| Forside | `/` |
+| Registrer deg | `/registrer` |
+| Logg inn | `/logg-inn` |
+| Administrasjon (kun admin) | `/admin/` |
+
 ## Teste
 
 ```bash

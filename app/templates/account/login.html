@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Logg inn · Ekte Mat Online{% endblock %}
+
+{% block content %}
+<section class="form-card">
+  <h1>Logg inn</h1>
+  {% if error %}<div class="flash flash-error" role="alert">{{ error }}</div>{% endif %}
+  <form method="post" action="{{ url_for('account.login') }}" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="next" value="{{ next }}">
+    <label for="email">E-post</label>
+    <input id="email" name="email" type="email" value="{{ email }}" autocomplete="email" required autofocus>
+    <label for="password">Passord</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+    <button type="submit" class="button">Logg inn</button>
+  </form>
+  <p class="muted">Ny kunde? <a href="{{ url_for('account.register', next=next or None) }}">Registrer deg</a></p>
+</section>
+{% endblock %}
