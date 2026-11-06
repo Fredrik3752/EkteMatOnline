@@ -13,13 +13,13 @@ from flask.cli import with_appcontext
 from app.models.food_item import FoodItem
 from app.models.order import GuestGroup, Order, OrderLine, OrderStatus, PaymentStatus
 from app.models.question import Question
-from app.models.repositories.database import init_db
 from app.models.repositories.event_category_repository import EventCategoryRepository
 from app.models.repositories.food_item_repository import FoodItemRepository
 from app.models.repositories.image_store import ImageStore
 from app.models.repositories.order_repository import OrderRepository
 from app.models.repositories.question_repository import QuestionRepository
 from app.models.repositories.reference_repository import AllergenRepository, DietaryLabelRepository
+from app.models.repositories.storage import describe_storage, reset_storage
 from app.models.repositories.user_repository import UserRepository
 from app.models.user import ROLE_ADMIN, User
 
@@ -79,7 +79,7 @@ FOOD_ITEMS = [
 def seed_database(today=None):
     """Reset the database and insert synthetic sample data. Returns a summary dict."""
     today = today or date.today()
-    init_db()
+    reset_storage()
     ImageStore().delete_all_public()  # uploads belonged to the items we just deleted
 
     users = UserRepository()
@@ -170,7 +170,7 @@ def seed_database(today=None):
 def seed_command():
     """Reset the database and load synthetic sample data."""
     summary = seed_database()
-    click.echo("Database seeded with synthetic data: " +
+    click.echo(f"Database seeded with synthetic data ({describe_storage()}): " +
                ", ".join(f"{k}={v}" for k, v in summary.items()))
     click.echo(f"Admin: {ADMIN['email']}  ·  Test customers: "
                + ", ".join(c["email"] for c in CUSTOMERS))

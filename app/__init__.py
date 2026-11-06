@@ -22,8 +22,8 @@ def create_app(test_config=None):
     if not app.config.get("IMAGE_PREVIEW_DIR"):
         app.config["IMAGE_PREVIEW_DIR"] = os.path.join(app.instance_path, "image_previews")
 
-    from app.models.repositories import database
-    database.init_app(app)
+    from app.models.repositories import storage
+    storage.init_app(app)
 
     from app.seed import seed_command
     app.cli.add_command(seed_command)

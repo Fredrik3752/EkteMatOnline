@@ -1,16 +1,25 @@
-from typing import List
-
-from app.models.reference import Allergen, DietaryLabel
-from app.models.repositories.database import get_db
-
-
-class AllergenRepository:
-    def list_all(self) -> List[Allergen]:
-        rows = get_db().execute("SELECT id, code, name FROM allergens ORDER BY id").fetchall()
-        return [Allergen(id=r["id"], code=r["code"], name=r["name"]) for r in rows]
+"""Public repository name used by controllers. The class is chosen by STORAGE_BACKEND."""
+from app.models.repositories.backend import implementation
+from app.models.repositories.base import AllergenRepositoryBase, DietaryLabelRepositoryBase
 
 
-class DietaryLabelRepository:
-    def list_all(self) -> List[DietaryLabel]:
-        rows = get_db().execute("SELECT id, code, name FROM dietary_labels ORDER BY id").fetchall()
-        return [DietaryLabel(id=r["id"], code=r["code"], name=r["name"]) for r in rows]
+class AllergenRepository(AllergenRepositoryBase):
+    """Repository for allergens.
+
+    `AllergenRepository()` returns the implementation for the configured backend
+    (SqliteAllergenRepository or Neo4jAllergenRepository); see base.AllergenRepositoryBase for the contract.
+    """
+
+    def __new__(cls, *args, **kwargs):
+        return implementation("AllergenRepository")(*args, **kwargs)
+
+
+class DietaryLabelRepository(DietaryLabelRepositoryBase):
+    """Repository for dietary labels.
+
+    `DietaryLabelRepository()` returns the implementation for the configured backend
+    (SqliteDietaryLabelRepository or Neo4jDietaryLabelRepository); see base.DietaryLabelRepositoryBase for the contract.
+    """
+
+    def __new__(cls, *args, **kwargs):
+        return implementation("DietaryLabelRepository")(*args, **kwargs)

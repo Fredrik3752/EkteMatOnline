@@ -1,16 +1,13 @@
 """SQLite connection handling.
 
-This module and the repository classes next to it are the ONLY code that may
-touch SQLite. Controllers and views talk to repositories and get domain
-objects back, so the storage can later be replaced by Neo4j.
+This package (repositories/sqlite) is the ONLY code that touches SQLite. Controllers
+and views talk to repositories and get domain objects back.
 """
 import os
 import sqlite3
 from importlib import resources
 
-import click
 from flask import current_app, g
-from flask.cli import with_appcontext
 
 
 def get_db():
@@ -34,17 +31,12 @@ def init_db():
     get_db().executescript(schema)
 
 
-@click.command("init-db")
-@with_appcontext
-def init_db_command():
-    """Reset the database (deletes all data)."""
-    init_db()
-    click.echo(f"Database initialised: {current_app.config['DATABASE']}")
+def describe(app) -> str:
+    return f"SQLite {app.config['DATABASE']}"
 
 
 def init_app(app):
     app.teardown_appcontext(close_db)
-    app.cli.add_command(init_db_command)
     # Create the database automatically on first start.
     if not os.path.exists(app.config["DATABASE"]):
         with app.app_context():

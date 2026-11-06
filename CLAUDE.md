@@ -12,7 +12,7 @@ Python 3.9+, Flask 3.1, Jinja2, SQLite (`sqlite3`), pytest. Ingen betalte API-er
 
 ## MVC-oppsett
 - `app/models/` – domeneklasser (dataclasses) med forretningsregler: `FoodItem`, `Order` (tilstandsmaskin for `OrderStatus`), `PaymentStatus`, `GuestGroup`, `Question`, `User`. Regelbrudd gir `ValidationError` / `InvalidStatusTransition`.
-- `app/models/repositories/` – **eneste** sted som rører SQLite (`database.py`, `schema.sql`, `*_repository.py`) og bildefiler (`image_store.py`). Skal kunne byttes mot Neo4j i oblig 5.
+- `app/models/repositories/` – **eneste** sted som rører lagring. `base.py` = kontrakter; `*_repository.py` = offentlige navn som velger implementasjon via `STORAGE_BACKEND` (`backend.py`); `sqlite/` og (Oblig 5) `neo4j/` = implementasjonene; `storage.py` = init/reset/`init-db`; `image_store.py` = bildefiler.
 - `app/controllers/` – Flask-blueprints `shop` (meny), `cart` (handlekurv i session), `checkout` (bestilling), `account` (registrer/logg inn/ut, mine ordrer, spørsmål) og `admin` (`/admin`: matretter, bilder, ordrer, spørsmål). Kaller repositories, rendrer maler. `auth.py` gir `g.user`, `@login_required` og `@admin_required`; `csrf.py` sjekker token på alle POST.
 - `app/templates/` – Jinja2-views; `app/static/` – CSS/JS/bilder.
 
@@ -27,7 +27,8 @@ pytest
 ```
 
 ## Regler
-- Ikke importer `sqlite3` eller skriv SQL utenfor `app/models/repositories/`.
+- `sqlite3`/SQL bare i `repositories/sqlite/`, `neo4j`/Cypher bare i `repositories/neo4j/`. Controllere importerer kun de offentlige navnene (`FoodItemRepository` osv.), aldri en bestemt backend.
+- Nye repository-metoder legges først i `base.py`, så i **begge** backends.
 - Repositories returnerer domeneobjekter, ikke `sqlite3.Row`. Statusendringer går via `Order.change_status()`, aldri direkte i SQL.
 - Bilder: filtype sjekkes på innhold (`app/models/image.py`), aldri filnavn; brukerens filnavn brukes aldri. Ikke lag «AI-bilder» lokalt og kall det en bildetjeneste.
 - Seed-data (`app/seed.py`) er oppdiktet og bruker `.test`-domener; passord leses fra `.env`.

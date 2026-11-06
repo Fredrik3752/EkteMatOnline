@@ -7,7 +7,7 @@ from app.models.event_category import EventCategory
 from app.models.food_item import FoodItem
 from app.models.order import GuestGroup, Order, OrderLine, OrderStatus, PaymentStatus
 from app.models.question import Question
-from app.models.repositories.database import get_db
+from app.models.repositories.sqlite.database import get_db
 from app.models.repositories.event_category_repository import EventCategoryRepository
 from app.models.repositories.food_item_repository import FoodItemRepository
 from app.models.repositories.order_repository import OrderRepository

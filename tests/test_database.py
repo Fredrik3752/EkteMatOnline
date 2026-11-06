@@ -2,7 +2,7 @@ import sqlite3
 
 import pytest
 
-from app.models.repositories.database import get_db
+from app.models.repositories.sqlite.database import get_db
 
 EXPECTED_TABLES = {
     "users", "event_categories", "allergens", "dietary_labels", "food_items",

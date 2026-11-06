@@ -4,7 +4,7 @@ from datetime import date
 import pytest
 
 from app.models.order import Order, OrderLine
-from app.models.repositories.database import get_db
+from app.models.repositories.sqlite.database import get_db
 from app.models.repositories.event_category_repository import EventCategoryRepository
 from app.models.repositories.food_item_repository import FoodItemRepository
 from app.models.repositories.order_repository import OrderRepository

@@ -5,6 +5,8 @@ import os
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-change-me")
     # Relative paths are resolved against the Flask instance folder.
+    # "sqlite" (default) or "neo4j" – see app/models/repositories/backend.py
+    STORAGE_BACKEND = os.environ.get("STORAGE_BACKEND", "sqlite")
     DATABASE = os.environ.get("DATABASE", "ektemat.db")
     TESTING = False
     SESSION_COOKIE_HTTPONLY = True
