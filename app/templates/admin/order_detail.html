@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Ordre {{ order.id }} · Admin · Ekte Mat Online{% endblock %}
+
+{% block content %}
+{% include "admin/_nav.html" %}
+<p><a href="{{ url_for('admin.orders') }}">← Alle ordrer</a></p>
+<h1>Ordre nr. {{ order.id }}</h1>
+
+<div class="admin-order-layout">
+  <div>
+    {% include "orders/_details.html" %}
+  </div>
+
+  <aside class="side-panel" aria-label="Behandle ordre">
+    <h2>Kunde</h2>
+    {% if customer %}
+      <p><strong>{{ customer.name }}</strong><br>
+         <a href="mailto:{{ customer.email }}">{{ customer.email }}</a>
+         {% if customer.phone %}<br>{{ customer.phone }}{% endif %}</p>
+    {% else %}<p>Ukjent kunde</p>{% endif %}
+    <p class="muted small">Bestilt {{ order.created_at|local_time }}<br>Sist endret {{ order.updated_at|local_time }}</p>
+
+    <h2>Ordrestatus</h2>
+    <p><span class="badge badge-{{ order.status.value }}">{{ order.status.label }}</span></p>
+    {% set next_statuses = order.allowed_next_statuses() %}
+    {% if next_statuses %}
+      <div class="status-actions">
+        {% for status in next_statuses %}
+          <form method="post" action="{{ url_for('admin.order_status', order_id=order.id) }}"
+                {% if status.needs_confirmation %}onsubmit='return confirm({{ ("Er du sikker? Ordren settes til «" ~ status.label ~ "» og kan ikke endres etterpå.")|tojson }});'{% endif %}>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="status" value="{{ status.value }}">
+            <button type="submit" class="button {{ 'button-danger' if status.needs_confirmation else '' }}">{{ status.action_label }}</button>
+          </form>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted small">Ordren er avsluttet og kan ikke endre status.</p>
+    {% endif %}
+
+    <h2>Betaling</h2>
+    <form method="post" action="{{ url_for('admin.order_payment', order_id=order.id) }}" class="payment-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label class="visually-hidden" for="payment_status">Betalingsstatus</label>
+      <select id="payment_status" name="payment_status">
+        {% for status in payment_statuses %}
+          <option value="{{ status.value }}" {% if status == order.payment_status %}selected{% endif %}>{{ status.label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="button">Lagre</button>
+    </form>
+  </aside>
+</div>
+{% endblock %}

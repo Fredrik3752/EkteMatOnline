@@ -1,8 +1,10 @@
-"""Customer accounts: register, log in, log out."""
-from flask import Blueprint, flash, g, redirect, render_template, request, url_for
+"""Customer accounts: register, log in, log out, and my orders (C4)."""
+from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for
 
-from app.controllers.auth import is_safe_next, log_in, log_out
-from app.models.errors import ValidationError
+from app.controllers.auth import is_safe_next, log_in, log_out, login_required
+from app.models.errors import InvalidStatusTransition, ValidationError
+from app.models.order import OrderStatus
+from app.models.repositories.order_repository import OrderRepository
 from app.models.repositories.user_repository import UserRepository
 from app.models.user import User
 
@@ -65,3 +67,41 @@ def logout():
     log_out()
     flash("Du er logget ut.", "info")
     return redirect(url_for("shop.index"))
+
+
+# -- C4: my orders ------------------------------------------------------------------
+
+def _own_order_or_404(order_id):
+    order = OrderRepository().get(order_id)
+    if order is None or order.customer_id != g.user.id:
+        abort(404)  # don't reveal that other customers' orders exist
+    return order
+
+
+@bp.route("/mine-ordrer")
+@login_required
+def my_orders():
+    return render_template("account/my_orders.html", orders=OrderRepository().list_for_customer(g.user.id))
+
+
+@bp.route("/mine-ordrer/<int:order_id>")
+@login_required
+def my_order(order_id):
+    return render_template("account/my_order.html", order=_own_order_or_404(order_id))
+
+
+@bp.route("/mine-ordrer/<int:order_id>/avbestill", methods=["POST"])
+@login_required
+def cancel_order(order_id):
+    order = _own_order_or_404(order_id)
+    if not order.can_be_cancelled_by_customer:
+        flash("Ordren er allerede behandlet og kan ikke avbestilles her. Send oss et spørsmål om ordren.", "error")
+    else:
+        try:
+            order.change_status(OrderStatus.CANCELLED)
+        except InvalidStatusTransition as exc:
+            flash(str(exc), "error")
+        else:
+            OrderRepository().save_status(order)
+            flash(f"Ordre nr. {order.id} er avbestilt.", "success")
+    return redirect(url_for("account.my_order", order_id=order.id))

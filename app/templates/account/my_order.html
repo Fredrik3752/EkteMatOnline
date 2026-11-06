@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Ordre {{ order.id }} · Ekte Mat Online{% endblock %}
+
+{% block content %}
+<p><a href="{{ url_for('account.my_orders') }}">← Mine ordrer</a></p>
+<h1>Ordre nr. {{ order.id }}</h1>
+
+{% include "orders/_details.html" %}
+
+{% if order.can_be_cancelled_by_customer %}
+  <form class="form-actions" method="post" action="{{ url_for('account.cancel_order', order_id=order.id) }}"
+        onsubmit='return confirm({{ ("Vil du avbestille ordre nr. " ~ order.id ~ "?")|tojson }});'>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="button button-danger">Avbestill ordren</button>
+    <span class="muted small">Du kan avbestille til Ekte Mat har godkjent ordren.</span>
+  </form>
+{% endif %}
+{% endblock %}

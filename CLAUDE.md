@@ -5,7 +5,7 @@ Bestillings- og cateringløsning for den fiktive Bergen-bedriften Ekte Mat AS
 (INFO212 oblig 4). Kundeside (meny per arrangement, handlekurv, bestilling, mine
 ordrer, spørsmål) og administrasjonspanel (matretter, bilder, ordrer, svar på
 spørsmål). Krav: A1–A4 og C1–C5 i oppgaveteksten; status per fase i `docs/plans/`.
-Ferdig: innlogging (fase 3), A1 + C1 (fase 4), C2 handlekurv + C3 bestilling (fase 5). Gjenstår: C4, C5, A2–A4.
+Ferdig: innlogging (fase 3), A1 + C1 (fase 4), C2 + C3 (fase 5), A3 ordrer + C4 mine ordrer (fase 6). Gjenstår: A4/C5 spørsmål, A2 bilder.
 
 ## Stack
 Python 3.9+, Flask 3.1, Jinja2, SQLite (`sqlite3`), pytest. Ingen betalte API-er.
@@ -31,6 +31,8 @@ pytest
 - Repositories returnerer domeneobjekter, ikke `sqlite3.Row`. Statusendringer går via `Order.change_status()`, aldri direkte i SQL.
 - Seed-data (`app/seed.py`) er oppdiktet og bruker `.test`-domener; passord leses fra `.env`.
 - Handlekurven ligger i session som `{"<item_id>": antall}`; `log_in()` beholder den. Regler for kurven ligger i `app/models/cart.py`.
+- Tidspunkter lagres i UTC (`CURRENT_TIMESTAMP`) og vises med filteret `|local_time` (Europe/Oslo).
+- Ordredetaljer vises via `templates/orders/_details.html` (kvittering, kunde og admin).
 - Priser lagres i øre (heltall). Allergier lagres per gjestegruppe, ikke per navngitt gjest.
 - Kun syntetiske data. Ikke les, kopier eller commit noe fra `EkteMat_project_inbox 2/` eller oppgave-PDF-en.
 - Ingen hemmeligheter i Git: bruk `.env` (ignorert), dokumenter nøkler i `.env.example`.

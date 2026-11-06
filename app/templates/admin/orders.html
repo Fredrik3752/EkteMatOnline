@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Ordrer · Admin · Ekte Mat Online{% endblock %}
+
+{% block content %}
+{% include "admin/_nav.html" %}
+<h1>Ordrer</h1>
+
+<form class="filter-bar" method="get" action="{{ url_for('admin.orders') }}">
+  <div>
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="">Alle</option>
+      {% for status in statuses %}
+        <option value="{{ status.value }}" {% if filters.status == status %}selected{% endif %}>{{ status.label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="fra">Eventdato fra</label>
+    <input id="fra" name="fra" type="date" value="{{ filters.date_from.isoformat() if filters.date_from else '' }}">
+  </div>
+  <div>
+    <label for="til">til</label>
+    <input id="til" name="til" type="date" value="{{ filters.date_to.isoformat() if filters.date_to else '' }}">
+  </div>
+  <div class="filter-actions">
+    <button type="submit" class="button">Filtrer</button>
+    {% if filters %}<a href="{{ url_for('admin.orders') }}">Nullstill</a>{% endif %}
+  </div>
+</form>
+
+<p class="muted">{{ orders|length }} ordre{{ 'r' if orders|length != 1 }}{% if filters %} med valgt filter{% endif %}.</p>
+
+{% if orders %}
+<div class="table-wrap">
+<table class="table">
+  <thead>
+    <tr><th>Nr.</th><th>Eventdato</th><th>Kunde</th><th class="num">Gjester</th><th class="num">Total</th><th>Status</th><th>Betaling</th></tr>
+  </thead>
+  <tbody>
+    {% for order in orders %}
+    {% set customer = customers.get(order.customer_id) %}
+    <tr>
+      <td><a href="{{ url_for('admin.order_detail', order_id=order.id) }}">#{{ order.id }}</a></td>
+      <td class="nowrap">{{ order.event_date.strftime('%d.%m.%Y') }}</td>
+      <td>{{ customer.name if customer else 'Ukjent' }}</td>
+      <td class="num">{{ order.guest_count }}</td>
+      <td class="num nowrap">{{ order.total_display }}</td>
+      <td><span class="badge badge-{{ order.status.value }}">{{ order.status.label }}</span></td>
+      <td>{{ order.payment_status.label }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+  <p>Ingen ordrer passer filteret.</p>
+{% endif %}
+{% endblock %}

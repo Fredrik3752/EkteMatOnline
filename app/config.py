@@ -9,3 +9,4 @@ class Config:
     TESTING = False
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
+    TIMEZONE = "Europe/Oslo"  # stored timestamps are UTC; shown in this zone

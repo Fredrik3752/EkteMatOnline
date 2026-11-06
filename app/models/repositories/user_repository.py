@@ -1,5 +1,5 @@
 import sqlite3
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from app.models.errors import ValidationError
 from app.models.repositories.database import get_db
@@ -30,6 +30,14 @@ class UserRepository:
             f"SELECT {_COLUMNS} FROM users WHERE email = ?", ((email or "").strip().lower(),)
         ).fetchone()
         return self._to_domain(row) if row else None
+
+    def get_many(self, user_ids) -> Dict[int, User]:
+        ids = list({int(i) for i in user_ids})
+        if not ids:
+            return {}
+        placeholders = ",".join("?" * len(ids))
+        rows = get_db().execute(f"SELECT {_COLUMNS} FROM users WHERE id IN ({placeholders})", ids).fetchall()
+        return {r["id"]: self._to_domain(r) for r in rows}
 
     def list_customers(self) -> List[User]:
         rows = get_db().execute(

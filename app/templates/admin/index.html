@@ -4,12 +4,12 @@
 {% block content %}
 {% include "admin/_nav.html" %}
 <h1>Administrasjon</h1>
-<p class="muted">Oversikt for Ekte Mat-ansatte. Sidene for bilder, ordrer og spørsmål kommer i neste faser.</p>
+<p class="muted">Oversikt for Ekte Mat-ansatte. Sidene for bilder og spørsmål kommer i neste faser.</p>
 
 <div class="stat-grid">
-  <div class="stat"><span class="stat-value">{{ order_total }}</span><span class="stat-label">Ordrer totalt</span></div>
+  <a class="stat" href="{{ url_for('admin.orders') }}"><span class="stat-value">{{ order_total }}</span><span class="stat-label">Ordrer totalt</span></a>
   <div class="stat"><span class="stat-value">{{ unanswered }}</span><span class="stat-label">Ubesvarte spørsmål</span></div>
-  <div class="stat"><span class="stat-value">{{ published_total }} / {{ item_total }}</span><span class="stat-label">Publiserte matretter</span></div>
+  <a class="stat" href="{{ url_for('admin.food_items') }}"><span class="stat-value">{{ published_total }} / {{ item_total }}</span><span class="stat-label">Publiserte matretter</span></a>
 </div>
 
 <h2>Ordrer per status</h2>
@@ -17,7 +17,7 @@
   <thead><tr><th>Status</th><th class="num">Antall</th></tr></thead>
   <tbody>
     {% for status, count in status_counts.items() %}
-      <tr><td><span class="badge badge-{{ status.value }}">{{ status.label }}</span></td><td class="num">{{ count }}</td></tr>
+      <tr><td><a href="{{ url_for('admin.orders', status=status.value) }}"><span class="badge badge-{{ status.value }}">{{ status.label }}</span></a></td><td class="num">{{ count }}</td></tr>
     {% endfor %}
   </tbody>
 </table>

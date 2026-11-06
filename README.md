@@ -63,10 +63,12 @@ flask --app app run --debug
 | Meny for ett arrangement | `/meny/<slug>`, f.eks. `/meny/wedding` |
 | Handlekurv | `/handlekurv` |
 | Bestilling (krever innlogging) | `/bestilling` |
+| Mine ordrer (krever innlogging) | `/mine-ordrer` |
 | Registrer deg | `/registrer` |
 | Logg inn | `/logg-inn` |
 | Administrasjon (kun admin) | `/admin/` |
 | Matretter (kun admin) | `/admin/matretter` |
+| Ordrer (kun admin) | `/admin/ordrer?status=&fra=&til=` |
 
 ## Teste
 

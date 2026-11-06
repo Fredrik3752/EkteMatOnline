@@ -23,6 +23,15 @@ class OrderStatus(str, Enum):
     def is_final(self) -> bool:
         return not ALLOWED_TRANSITIONS[self]
 
+    @property
+    def action_label(self) -> str:
+        """Button text for moving an order INTO this status."""
+        return _ACTION_LABELS[self]
+
+    @property
+    def needs_confirmation(self) -> bool:
+        return self in (OrderStatus.REJECTED, OrderStatus.CANCELLED)
+
 
 _STATUS_LABELS = {
     OrderStatus.SUBMITTED: "Sendt inn",
@@ -31,6 +40,15 @@ _STATUS_LABELS = {
     OrderStatus.DELIVERED: "Levert",
     OrderStatus.REJECTED: "Avvist",
     OrderStatus.CANCELLED: "Avbestilt",
+}
+
+_ACTION_LABELS = {
+    OrderStatus.SUBMITTED: "Sett til sendt inn",
+    OrderStatus.APPROVED: "Godkjenn",
+    OrderStatus.IN_PREPARATION: "Start tilberedning",
+    OrderStatus.DELIVERED: "Marker som levert",
+    OrderStatus.REJECTED: "Avvis",
+    OrderStatus.CANCELLED: "Kanseller",
 }
 
 # State machine for order status (requirement A3).

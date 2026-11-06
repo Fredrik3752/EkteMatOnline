@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from app.models.errors import ValidationError
@@ -31,4 +31,6 @@ class Question:
             raise ValidationError({"answer": "Svaret kan ikke være tomt."})
         self.answer = text.strip()
         self.answered_by = admin_id
-        self.answered_at = (when or datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
+        # Stored in UTC like SQLite CURRENT_TIMESTAMP, so all timestamps are comparable.
+        moment = (when or datetime.now(timezone.utc)).astimezone(timezone.utc)
+        self.answered_at = moment.strftime("%Y-%m-%d %H:%M:%S")

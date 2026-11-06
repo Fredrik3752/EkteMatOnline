@@ -90,3 +90,33 @@ def menu_items(app):
 def cart_in_session(client):
     with client.session_transaction() as sess:
         return dict(sess.get("cart", {}))
+
+
+@pytest.fixture
+def make_order(app):
+    """Create an order directly through the repository."""
+    from datetime import date
+
+    from app.models.order import GuestGroup, Order, OrderLine
+    from app.models.repositories.order_repository import OrderRepository
+
+    def _make(customer_id, event_date=date(2027, 5, 1), status=None, **kwargs):
+        data = dict(customer_id=customer_id, event_date=event_date, guest_count=20,
+                    delivery_address="Testveien 1, 5000 Bergen",
+                    lines=[OrderLine("Fiskesuppe", 20, 18900)],
+                    guest_groups=[GuestGroup("Nøtteallergi", 2, allergy_notes="Nøtter")])
+        data.update(kwargs)
+        with app.app_context():
+            repo = OrderRepository()
+            order = repo.add(Order(**data))
+            if status is not None:
+                order.status = status  # test setup only – bypasses the state machine
+                order = repo.save_status(order)
+            return order
+    return _make
+
+
+def get_order(app, order_id):
+    from app.models.repositories.order_repository import OrderRepository
+    with app.app_context():
+        return OrderRepository().get(order_id)
