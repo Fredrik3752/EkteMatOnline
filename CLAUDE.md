@@ -10,7 +10,7 @@ spørsmål). Krav: A1–A4 og C1–C5 i oppgaveteksten; status per fase i `docs/
 Python 3.9+, Flask 3.1, Jinja2, SQLite (`sqlite3`), pytest. Ingen betalte API-er.
 
 ## MVC-oppsett
-- `app/models/` – domeneklasser (dataclasses).
+- `app/models/` – domeneklasser (dataclasses) med forretningsregler: `FoodItem`, `Order` (tilstandsmaskin for `OrderStatus`), `PaymentStatus`, `GuestGroup`, `Question`, `User`. Regelbrudd gir `ValidationError` / `InvalidStatusTransition`.
 - `app/models/repositories/` – **eneste** sted som rører SQLite (`database.py`, `schema.sql`, `*_repository.py`). Skal kunne byttes mot Neo4j i oblig 5.
 - `app/controllers/` – Flask-blueprints (`shop`, senere `account`, `admin`). Kaller repositories, rendrer maler.
 - `app/templates/` – Jinja2-views; `app/static/` – CSS/JS/bilder.
@@ -19,14 +19,16 @@ Python 3.9+, Flask 3.1, Jinja2, SQLite (`sqlite3`), pytest. Ingen betalte API-er
 ```bash
 source .venv/bin/activate
 pip install -r requirements.txt
-flask --app app init-db      # nullstiller databasen
+flask --app app seed         # nullstiller og fyller inn syntetiske testdata
+flask --app app init-db      # nullstiller til tom database
 flask --app app run --debug  # http://127.0.0.1:5000
 pytest
 ```
 
 ## Regler
 - Ikke importer `sqlite3` eller skriv SQL utenfor `app/models/repositories/`.
-- Repositories returnerer domeneobjekter, ikke `sqlite3.Row`.
+- Repositories returnerer domeneobjekter, ikke `sqlite3.Row`. Statusendringer går via `Order.change_status()`, aldri direkte i SQL.
+- Seed-data (`app/seed.py`) er oppdiktet og bruker `.test`-domener; passord leses fra `.env`.
 - Priser lagres i øre (heltall). Allergier lagres per gjestegruppe, ikke per navngitt gjest.
 - Kun syntetiske data. Ikke les, kopier eller commit noe fra `EkteMat_project_inbox 2/` eller oppgave-PDF-en.
 - Ingen hemmeligheter i Git: bruk `.env` (ignorert), dokumenter nøkler i `.env.example`.

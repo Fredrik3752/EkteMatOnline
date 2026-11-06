@@ -21,6 +21,9 @@ def create_app(test_config=None):
     from app.models.repositories import database
     database.init_app(app)
 
+    from app.seed import seed_command
+    app.cli.add_command(seed_command)
+
     from app.controllers.shop import bp as shop_bp
     app.register_blueprint(shop_bp)
 

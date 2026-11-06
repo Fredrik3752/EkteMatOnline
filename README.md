@@ -25,13 +25,28 @@ cp .env.example .env             # sett en egen SECRET_KEY
 ## Database
 
 Databasen (`instance/ektemat.db`) opprettes automatisk ved første oppstart.
-Slik nullstiller du den:
+Fyll den med syntetiske testdata (nullstiller alt først):
+
+```bash
+flask --app app seed
+```
+
+Seed-skriptet lager 13 matretter (én upublisert), 4 ordrer med ulike statuser,
+2 spørsmål og disse testbrukerne:
+
+| Rolle | E-post | Passord |
+|---|---|---|
+| Admin | `admin@ektemat.example.test` | `SEED_ADMIN_PASSWORD` i `.env` |
+| Kunde | `kari.testkunde@example.test` | `SEED_CUSTOMER_PASSWORD` i `.env` |
+| Bedriftskunde | `bedrift.test@example.test` | `SEED_CUSTOMER_PASSWORD` i `.env` |
+
+Standardpassordene står i `.env.example`. Alle navn, adresser og ordrer er oppdiktet.
+
+Tom database uten testdata:
 
 ```bash
 flask --app app init-db
 ```
-
-Seed-skript med syntetiske matretter, en administrator og testkunder kommer i fase 2.
 
 ## Kjøre
 
