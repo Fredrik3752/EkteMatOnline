@@ -13,13 +13,20 @@
 <table class="table">
   <thead>
     <tr>
-      <th>Navn</th><th class="num">Pris</th><th class="num">Min.</th>
+      <th><span class="visually-hidden">Bilde</span></th><th>Navn</th><th class="num">Pris</th><th class="num">Min.</th>
       <th>Arrangementer</th><th>Allergener</th><th>Status</th><th><span class="visually-hidden">Handlinger</span></th>
     </tr>
   </thead>
   <tbody>
     {% for item in items %}
     <tr>
+      <td>
+        <a href="{{ url_for('admin.food_item_image', item_id=item.id) }}" title="Endre bilde">
+          {% if item.image_path %}<img class="thumb" src="{{ url_for('static', filename=item.image_path) }}" alt="">
+          {% else %}<span class="thumb placeholder" aria-hidden="true">{{ item.name[:1] }}</span>{% endif %}
+          <span class="visually-hidden">Bilde for {{ item.name }}</span>
+        </a>
+      </td>
       <td><a href="{{ url_for('admin.food_item_edit', item_id=item.id) }}">{{ item.name }}</a></td>
       <td class="num nowrap">{{ item.price_ore|nok }}</td>
       <td class="num">{{ item.min_order_qty }}</td>
@@ -31,6 +38,7 @@
       </td>
       <td class="actions">
         <a href="{{ url_for('admin.food_item_edit', item_id=item.id) }}">Rediger</a>
+        <a href="{{ url_for('admin.food_item_image', item_id=item.id) }}">Bilde</a>
         <form class="inline-form" method="post" action="{{ url_for('admin.food_item_toggle_published', item_id=item.id) }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="text-button">{{ 'Skjul' if item.is_published else 'Publiser' }}</button>

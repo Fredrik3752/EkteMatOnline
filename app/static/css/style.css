@@ -233,3 +233,16 @@ a.stat:hover { border-color: var(--ochre); }
 .answer-form .button { margin-top: 8px; }
 .question-form { max-width: none; margin-top: 12px; }
 .question-form .button { margin-top: 10px; }
+
+/* Images (A2) */
+.thumb { display: inline-flex; width: 48px; height: 36px; border-radius: 6px; object-fit: cover; vertical-align: middle; }
+.thumb.placeholder { align-items: center; justify-content: center; background: linear-gradient(135deg, #e8efe9, #f4e7cf); color: var(--green); font-weight: 700; }
+.image-layout { display: grid; gap: 24px; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); align-items: start; }
+@media (max-width: 760px) { .image-layout { grid-template-columns: 1fr; } }
+.image-current h2, .image-layout .admin-form h2 { font-size: 1.1rem; margin-top: 0; color: var(--green); }
+.image-frame { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); border: 1px solid var(--border); display: flex; background: var(--surface); }
+.image-compare { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin: 16px 0; }
+.image-compare figure { margin: 0; }
+.image-compare figcaption { font-weight: 600; margin-bottom: 6px; }
+.preview-card { max-width: 320px; }
+.form-actions form { margin: 0; }

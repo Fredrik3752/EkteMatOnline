@@ -1,15 +1,18 @@
-"""Admin panel for Ekte Mat staff: overview, food items (A1), orders (A3) and questions (A4)."""
+"""Admin panel for Ekte Mat staff: overview, food items (A1), images (A2), orders (A3), questions (A4)."""
 from datetime import date
 
-from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for
+from flask import (Blueprint, abort, flash, g, redirect, render_template, request, send_file,
+                   session, url_for)
 
 from app.controllers.auth import admin_required, is_safe_next
 from app.models.errors import InvalidStatusTransition, ValidationError
 from app.models.food_item import FoodItem
+from app.models.image import ALLOWED_TYPES, MAX_IMAGE_BYTES, validate_image
 from app.models.money import nok_to_ore
 from app.models.order import OrderStatus, PaymentStatus
 from app.models.repositories.event_category_repository import EventCategoryRepository
 from app.models.repositories.food_item_repository import FoodItemRepository
+from app.models.repositories.image_store import ImageStore
 from app.models.repositories.order_repository import OrderRepository
 from app.models.repositories.question_repository import QuestionRepository
 from app.models.repositories.reference_repository import AllergenRepository, DietaryLabelRepository
@@ -142,6 +145,7 @@ def food_item_toggle_published(item_id):
 def food_item_delete(item_id):
     item = _get_item_or_404(item_id)
     FoodItemRepository().delete(item.id)
+    ImageStore().delete_public(item.image_path)
     flash(f"«{item.name}» er slettet. Eksisterende ordrer beholder navn og pris.", "success")
     return redirect(url_for("admin.food_items"))
 
@@ -262,3 +266,121 @@ def answer_question(question_id):
         flash(f"Svaret på spørsmålet om ordre {question.order_id} er sendt.", "success")
     target = request.form.get("next", "")
     return redirect(target if is_safe_next(target) else url_for("admin.questions"))
+
+
+# -- A2: images – upload, preview before saving, save / discard / remove --------------
+
+PREVIEW_KEY = "image_preview"
+
+
+def _pending_preview(item_id):
+    """The preview in this admin's session, if it belongs to this item."""
+    pending = session.get(PREVIEW_KEY)
+    if pending and pending.get("item_id") == item_id:
+        return pending
+    return None
+
+
+def _drop_pending_preview():
+    pending = session.pop(PREVIEW_KEY, None)
+    if pending:
+        ImageStore().discard_preview(pending.get("token", ""), pending.get("ext", ""))
+
+
+def _image_page(item, error=None, status=200):
+    return render_template("admin/food_item_image.html", item=item, error=error,
+                           accept=",".join(f"image/{'jpeg' if e == 'jpg' else e}" for e in ALLOWED_TYPES),
+                           max_mb=MAX_IMAGE_BYTES // (1024 * 1024)), status
+
+
+@bp.route("/matretter/<int:item_id>/bilde")
+@admin_required
+def food_item_image(item_id):
+    return _image_page(_get_item_or_404(item_id))
+
+
+@bp.route("/matretter/<int:item_id>/bilde/forhandsvis", methods=["POST"])
+@admin_required
+def food_item_image_preview(item_id):
+    """Step 1: validate the upload and keep it as a private preview. Nothing is saved on the item."""
+    item = _get_item_or_404(item_id)
+    upload = request.files.get("image")
+    data = upload.read() if upload else b""
+    try:
+        ext = validate_image(data)
+    except ValidationError as exc:
+        return _image_page(item, error=exc.errors["image"], status=400)
+    _drop_pending_preview()  # only one preview at a time
+    token = ImageStore().save_preview(data, ext)
+    session[PREVIEW_KEY] = {"item_id": item.id, "token": token, "ext": ext}
+    return redirect(url_for("admin.food_item_image_review", item_id=item.id))
+
+
+@bp.route("/matretter/<int:item_id>/bilde/forhandsvisning")
+@admin_required
+def food_item_image_review(item_id):
+    """Step 2: show current and new picture side by side, with save / discard."""
+    item = _get_item_or_404(item_id)
+    pending = _pending_preview(item.id)
+    if not pending or not ImageStore().preview_file(pending["token"], pending["ext"]):
+        flash("Det finnes ingen forhåndsvisning. Last opp et bilde først.", "info")
+        return redirect(url_for("admin.food_item_image", item_id=item.id))
+    preview_url = url_for("admin.image_preview_file", token=pending["token"], ext=pending["ext"])
+    return render_template("admin/food_item_image_preview.html", item=item, preview_url=preview_url,
+                           token=pending["token"])
+
+
+@bp.route("/bilder/forhandsvisning/<token>.<ext>")
+@admin_required
+def image_preview_file(token, ext):
+    """Serve a private preview – admins only, never from /static."""
+    path = ImageStore().preview_file(token, ext)
+    if path is None:
+        abort(404)
+    mimetype = "image/jpeg" if ext == "jpg" else f"image/{ext}"
+    response = send_file(path, mimetype=mimetype, max_age=0)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+@bp.route("/matretter/<int:item_id>/bilde/lagre", methods=["POST"])
+@admin_required
+def food_item_image_save(item_id):
+    """Step 3: the admin has seen the preview and saves it on the item."""
+    item = _get_item_or_404(item_id)
+    pending = _pending_preview(item.id)
+    store = ImageStore()
+    if not pending or request.form.get("token") != pending["token"] \
+            or not store.preview_file(pending["token"], pending["ext"]):
+        flash("Forhåndsvisningen finnes ikke lenger. Last opp bildet på nytt.", "error")
+        return redirect(url_for("admin.food_item_image", item_id=item.id))
+    old_path = item.image_path
+    item.image_path = store.promote_preview(pending["token"], pending["ext"], item.id)
+    FoodItemRepository().update(item)
+    session.pop(PREVIEW_KEY, None)
+    store.delete_public(old_path)
+    flash(f"Bildet for «{item.name}» er lagret.", "success")
+    return redirect(url_for("admin.food_item_image", item_id=item.id))
+
+
+@bp.route("/matretter/<int:item_id>/bilde/forkast", methods=["POST"])
+@admin_required
+def food_item_image_discard(item_id):
+    item = _get_item_or_404(item_id)
+    if _pending_preview(item.id):
+        _drop_pending_preview()
+    flash("Forhåndsvisningen er forkastet. Bildet er ikke endret.", "info")
+    return redirect(url_for("admin.food_item_image", item_id=item.id))
+
+
+@bp.route("/matretter/<int:item_id>/bilde/fjern", methods=["POST"])
+@admin_required
+def food_item_image_remove(item_id):
+    item = _get_item_or_404(item_id)
+    if item.image_path:
+        old_path = item.image_path
+        item.image_path = None
+        FoodItemRepository().update(item)
+        ImageStore().delete_public(old_path)
+        flash(f"Bildet er fjernet fra «{item.name}».", "success")
+    return redirect(url_for("admin.food_item_image", item_id=item.id))

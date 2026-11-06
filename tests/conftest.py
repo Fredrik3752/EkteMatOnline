@@ -21,6 +21,8 @@ def app(tmp_path):
         "TESTING": True,
         "SECRET_KEY": "test",
         "DATABASE": str(tmp_path / "test.db"),
+        "IMAGE_UPLOAD_DIR": str(tmp_path / "uploads"),
+        "IMAGE_PREVIEW_DIR": str(tmp_path / "previews"),
     })
     yield app
 

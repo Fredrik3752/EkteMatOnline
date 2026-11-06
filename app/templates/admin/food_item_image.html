@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Bilde · {{ item.name }} · Admin · Ekte Mat Online{% endblock %}
+
+{% block content %}
+{% include "admin/_nav.html" %}
+<p><a href="{{ url_for('admin.food_item_edit', item_id=item.id) }}">← {{ item.name }}</a></p>
+<h1>Bilde for «{{ item.name }}»</h1>
+
+<div class="image-layout">
+  <section class="image-current">
+    <h2>Nåværende bilde</h2>
+    {% if item.image_path %}
+      <img class="image-frame" src="{{ url_for('static', filename=item.image_path) }}" alt="Nåværende bilde av {{ item.name }}">
+      <form method="post" action="{{ url_for('admin.food_item_image_remove', item_id=item.id) }}"
+            onsubmit='return confirm({{ ("Fjerne bildet fra «" ~ item.name ~ "»?")|tojson }});'>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="text-button danger">Fjern bildet</button>
+      </form>
+    {% else %}
+      <div class="image-frame food-image placeholder" aria-hidden="true"><span>{{ item.name[:1] }}</span></div>
+      <p class="muted small">Retten har ikke bilde. Menykortet viser en plassholder.</p>
+    {% endif %}
+  </section>
+
+  <section class="admin-form">
+    <h2>Last opp nytt bilde</h2>
+    <p class="muted small">JPEG, PNG eller WebP, høyst {{ max_mb }} MB. Du får se bildet før det lagres.</p>
+    {% if error %}<div class="flash flash-error" role="alert" id="image-error">{{ error }}</div>{% endif %}
+    <form method="post" action="{{ url_for('admin.food_item_image_preview', item_id=item.id) }}" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label for="image">Bildefil</label>
+      <input id="image" name="image" type="file" accept="{{ accept }}" required
+             {% if error %}aria-invalid="true" aria-describedby="image-error"{% endif %}>
+      <button type="submit" class="button">Forhåndsvis</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

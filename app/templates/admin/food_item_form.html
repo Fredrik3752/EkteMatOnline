@@ -67,7 +67,11 @@
     Publisert – vises på menyen for kunder
   </label>
 
-  <p class="muted">Bilde legges til i bildefunksjonen (kommer i fase 8).</p>
+  {% if is_new %}
+    <p class="muted">Du kan legge til bilde etter at retten er lagret.</p>
+  {% else %}
+    <p><a href="{{ url_for('admin.food_item_image', item_id=item.id) }}">{{ 'Endre bilde' if item.image_path else 'Legg til bilde' }} →</a></p>
+  {% endif %}
 
   <div class="form-actions">
     <button type="submit" class="button">{{ 'Legg til matrett' if is_new else 'Lagre endringer' }}</button>

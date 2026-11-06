@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Forhåndsvis bilde · {{ item.name }} · Admin · Ekte Mat Online{% endblock %}
+
+{% block content %}
+{% include "admin/_nav.html" %}
+<h1>Forhåndsvis bilde for «{{ item.name }}»</h1>
+<div class="flash flash-info">Bildet er <strong>ikke lagret ennå</strong>. Se over og velg «Lagre bildet» eller «Forkast».</div>
+
+<div class="image-compare">
+  <figure>
+    <figcaption>Nåværende</figcaption>
+    {% if item.image_path %}
+      <img class="image-frame" src="{{ url_for('static', filename=item.image_path) }}" alt="Nåværende bilde av {{ item.name }}">
+    {% else %}
+      <div class="image-frame food-image placeholder" aria-hidden="true"><span>{{ item.name[:1] }}</span></div>
+    {% endif %}
+  </figure>
+  <figure>
+    <figcaption>Nytt bilde</figcaption>
+    <img class="image-frame" src="{{ preview_url }}" alt="Forhåndsvisning av nytt bilde for {{ item.name }}">
+  </figure>
+  <figure>
+    <figcaption>Slik blir menykortet</figcaption>
+    <article class="food-card preview-card">
+      <img class="food-image" src="{{ preview_url }}" alt="">
+      <div class="food-body">
+        <h3>{{ item.name }}</h3>
+        <dl class="food-facts">
+          <div><dt>Pris</dt><dd class="price">{{ item.price_ore|nok }}</dd></div>
+          <div><dt>Minimum</dt><dd>{{ item.min_order_qty }} stk.</dd></div>
+        </dl>
+      </div>
+    </article>
+  </figure>
+</div>
+
+<div class="form-actions">
+  <form method="post" action="{{ url_for('admin.food_item_image_save', item_id=item.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="token" value="{{ token }}">
+    <button type="submit" class="button">Lagre bildet</button>
+  </form>
+  <form method="post" action="{{ url_for('admin.food_item_image_discard', item_id=item.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="text-button">Forkast</button>
+  </form>
+</div>
+{% endblock %}

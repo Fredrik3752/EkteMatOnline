@@ -20,3 +20,7 @@ instance/
 
 # Lokal oppstartskonfig for Claude-forhåndsvisning
 .claude/launch.json
+
+# Opplastede bilder (A2) – lages lokalt, committes ikke
+app/static/uploads/food/*
+!app/static/uploads/food/.gitkeep

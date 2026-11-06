@@ -5,6 +5,7 @@ MESSAGES = {
     400: ("Ugyldig forespørsel", "Forespørselen kunne ikke behandles."),
     403: ("Ingen tilgang", "Du har ikke tilgang til denne siden."),
     404: ("Fant ikke siden", "Siden du leter etter finnes ikke."),
+    413: ("Filen er for stor", "Filen du prøvde å laste opp er for stor. Bilder kan være høyst 5 MB."),
 }
 
 

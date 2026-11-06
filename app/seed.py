@@ -16,6 +16,7 @@ from app.models.question import Question
 from app.models.repositories.database import init_db
 from app.models.repositories.event_category_repository import EventCategoryRepository
 from app.models.repositories.food_item_repository import FoodItemRepository
+from app.models.repositories.image_store import ImageStore
 from app.models.repositories.order_repository import OrderRepository
 from app.models.repositories.question_repository import QuestionRepository
 from app.models.repositories.reference_repository import AllergenRepository, DietaryLabelRepository
@@ -79,6 +80,7 @@ def seed_database(today=None):
     """Reset the database and insert synthetic sample data. Returns a summary dict."""
     today = today or date.today()
     init_db()
+    ImageStore().delete_all_public()  # uploads belonged to the items we just deleted
 
     users = UserRepository()
     admin_pw = os.environ.get("SEED_ADMIN_PASSWORD", DEFAULT_ADMIN_PASSWORD)

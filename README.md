@@ -68,8 +68,26 @@ flask --app app run --debug
 | Logg inn | `/logg-inn` |
 | Administrasjon (kun admin) | `/admin/` |
 | Matretter (kun admin) | `/admin/matretter` |
+| Bilde for en matrett (kun admin) | `/admin/matretter/<id>/bilde` |
 | Ordrer (kun admin) | `/admin/ordrer?status=&fra=&til=` |
 | Spørsmål (kun admin) | `/admin/sporsmal`, `/admin/sporsmal?vis=alle` |
+
+## Bilder (krav A2)
+
+Oppgaven sier: *«Upload a picture for each item, **or** write an instruction that an AI agent
+or image service uses to create or modify the picture. The admin previews the result before
+it is saved.»*
+
+Løsningen bruker det første alternativet, **opplasting**. Admin velger et bilde (JPEG, PNG
+eller WebP, høyst 5 MB) og ser det på en egen forhåndsvisningsside, side om side med
+nåværende bilde og slik menykortet blir. Bildet lagres først når admin trykker «Lagre bildet».
+«Forkast» sletter forhåndsvisningen.
+
+Opplastede bilder lagres i `app/static/uploads/food/` og committes ikke. `flask seed`
+fjerner dem, fordi rettene de hørte til blir slettet.
+
+Det andre alternativet, instruksjon til en AI-agent eller bildetjeneste, er ikke laget,
+fordi det krever en ekstern tjeneste. Se `docs/plans/08-bilder.md`.
 
 ## Teste
 

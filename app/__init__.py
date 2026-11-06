@@ -17,6 +17,10 @@ def create_app(test_config=None):
     os.makedirs(app.instance_path, exist_ok=True)
     if not os.path.isabs(app.config["DATABASE"]):
         app.config["DATABASE"] = os.path.join(app.instance_path, app.config["DATABASE"])
+    if not app.config.get("IMAGE_UPLOAD_DIR"):
+        app.config["IMAGE_UPLOAD_DIR"] = os.path.join(app.static_folder, "uploads", "food")
+    if not app.config.get("IMAGE_PREVIEW_DIR"):
+        app.config["IMAGE_PREVIEW_DIR"] = os.path.join(app.instance_path, "image_previews")
 
     from app.models.repositories import database
     database.init_app(app)
