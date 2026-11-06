@@ -1,9 +1,9 @@
-"""Admin panel for Ekte Mat staff: overview, food items (A1) and orders (A3)."""
+"""Admin panel for Ekte Mat staff: overview, food items (A1), orders (A3) and questions (A4)."""
 from datetime import date
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for
 
-from app.controllers.auth import admin_required
+from app.controllers.auth import admin_required, is_safe_next
 from app.models.errors import InvalidStatusTransition, ValidationError
 from app.models.food_item import FoodItem
 from app.models.money import nok_to_ore
@@ -190,9 +190,10 @@ def orders():
 @admin_required
 def order_detail(order_id):
     order = _get_order_or_404(order_id)
-    return render_template("admin/order_detail.html", order=order,
-                           customer=UserRepository().get(order.customer_id),
-                           payment_statuses=list(PaymentStatus))
+    customer = UserRepository().get(order.customer_id)
+    return render_template("admin/order_detail.html", order=order, customer=customer,
+                           payment_statuses=list(PaymentStatus),
+                           questions=QuestionRepository().list_for_order(order.id))
 
 
 @bp.route("/ordrer/<int:order_id>/status", methods=["POST"])
@@ -224,3 +225,40 @@ def order_payment(order_id):
         OrderRepository().save_status(order)
         flash(f"Betalingsstatus for ordre {order.id} er «{order.payment_status.label}».", "success")
     return redirect(url_for("admin.order_detail", order_id=order.id))
+
+
+# -- A4: questions ------------------------------------------------------------------
+
+def unanswered_count():
+    """Jinja global for the admin menu badge."""
+    return QuestionRepository().count_unanswered()
+
+
+@bp.route("/sporsmal")
+@admin_required
+def questions():
+    show_all = request.args.get("vis") == "alle"
+    question_list = QuestionRepository().list_all(unanswered_only=not show_all)
+    if not show_all:
+        question_list.reverse()  # oldest unanswered first – answer in the order they came in
+    authors = UserRepository().get_many(q.author_id for q in question_list)
+    return render_template("admin/questions.html", questions=question_list, authors=authors,
+                           show_all=show_all)
+
+
+@bp.route("/sporsmal/<int:question_id>/svar", methods=["POST"])
+@admin_required
+def answer_question(question_id):
+    repo = QuestionRepository()
+    question = repo.get(question_id)
+    if question is None:
+        abort(404)
+    try:
+        question.give_answer(request.form.get("answer", ""), admin_id=g.user.id)
+    except ValidationError as exc:
+        flash(exc.errors["answer"], "error")
+    else:
+        repo.save_answer(question)
+        flash(f"Svaret på spørsmålet om ordre {question.order_id} er sendt.", "success")
+    target = request.form.get("next", "")
+    return redirect(target if is_safe_next(target) else url_for("admin.questions"))

@@ -170,7 +170,25 @@ def test_invalid_users(email, name, password, field):
 def test_question_answer():
     q = Question(order_id=1, author_id=2, body="Kan dere levere tidligere?")
     assert not q.is_answered
-    q.give_answer("Ja, kl. 16:30 går fint.", admin_id=1)
-    assert q.is_answered and q.answered_by == 1 and q.answered_at
     with pytest.raises(ValidationError):
         q.give_answer("   ", admin_id=1)
+    q.give_answer("Ja, kl. 16:30 går fint.", admin_id=1)
+    assert q.is_answered and q.answered_by == 1 and q.answered_at
+
+
+def test_question_cannot_be_answered_twice():
+    q = Question(order_id=1, author_id=2, body="Spørsmål")
+    q.give_answer("Første svar", admin_id=1)
+    with pytest.raises(ValidationError) as exc:
+        q.give_answer("Andre svar", admin_id=3)
+    assert "allerede besvart" in exc.value.errors["answer"]
+    assert q.answer == "Første svar" and q.answered_by == 1
+
+
+def test_question_length_limits():
+    from app.models.question import MAX_ANSWER_LENGTH, MAX_QUESTION_LENGTH
+    Question(order_id=1, author_id=2, body="x" * MAX_QUESTION_LENGTH).validate()
+    with pytest.raises(ValidationError):
+        Question(order_id=1, author_id=2, body="x" * (MAX_QUESTION_LENGTH + 1)).validate()
+    with pytest.raises(ValidationError):
+        Question(order_id=1, author_id=2, body="?").give_answer("x" * (MAX_ANSWER_LENGTH + 1), admin_id=1)

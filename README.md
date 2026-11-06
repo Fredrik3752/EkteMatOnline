@@ -63,12 +63,13 @@ flask --app app run --debug
 | Meny for ett arrangement | `/meny/<slug>`, f.eks. `/meny/wedding` |
 | Handlekurv | `/handlekurv` |
 | Bestilling (krever innlogging) | `/bestilling` |
-| Mine ordrer (krever innlogging) | `/mine-ordrer` |
+| Mine ordrer og spørsmål (krever innlogging) | `/mine-ordrer`, `/mine-ordrer/<id>` |
 | Registrer deg | `/registrer` |
 | Logg inn | `/logg-inn` |
 | Administrasjon (kun admin) | `/admin/` |
 | Matretter (kun admin) | `/admin/matretter` |
 | Ordrer (kun admin) | `/admin/ordrer?status=&fra=&til=` |
+| Spørsmål (kun admin) | `/admin/sporsmal`, `/admin/sporsmal?vis=alle` |
 
 ## Teste
 

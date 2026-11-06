@@ -34,6 +34,7 @@ def create_app(test_config=None):
     app.before_request(check_csrf)
     app.jinja_env.globals["csrf_token"] = csrf_token
     app.jinja_env.globals["cart_count"] = cart.cart_count
+    app.jinja_env.globals["unanswered_count"] = admin.unanswered_count
     register_filters(app)
     register_error_handlers(app)
 

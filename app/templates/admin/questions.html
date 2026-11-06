@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Spørsmål · Admin · Ekte Mat Online{% endblock %}
+
+{% block content %}
+{% include "admin/_nav.html" %}
+<h1>Spørsmål fra kunder</h1>
+
+<nav class="category-tabs" aria-label="Vis spørsmål">
+  <a href="{{ url_for('admin.questions') }}" {% if not show_all %}aria-current="page"{% endif %}>Ubesvarte</a>
+  <a href="{{ url_for('admin.questions', vis='alle') }}" {% if show_all %}aria-current="page"{% endif %}>Alle</a>
+</nav>
+
+{% if questions %}
+<ol class="question-list admin-questions">
+  {% for q in questions %}
+  <li class="question {{ 'answered' if q.is_answered else 'unanswered' }}">
+    <div class="question-meta">
+      <a href="{{ url_for('admin.order_detail', order_id=q.order_id) }}#sporsmal">Ordre #{{ q.order_id }}</a>
+      · {{ authors[q.author_id].name if authors.get(q.author_id) else 'Ukjent kunde' }}
+      · {{ q.created_at|local_time }}
+    </div>
+    <p class="pre question-body">{{ q.body }}</p>
+    {% if q.is_answered %}
+      <div class="answer">
+        <div class="question-meta">Svar · {{ q.answered_at|local_time }}</div>
+        <p class="pre">{{ q.answer }}</p>
+      </div>
+    {% else %}
+      <form class="answer-form" method="post" action="{{ url_for('admin.answer_question', question_id=q.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+        <label for="answer-{{ q.id }}">Svar</label>
+        <textarea id="answer-{{ q.id }}" name="answer" rows="3" maxlength="4000" required></textarea>
+        <button type="submit" class="button">Send svar</button>
+      </form>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ol>
+{% else %}
+  <p>{{ 'Ingen spørsmål ennå.' if show_all else 'Ingen ubesvarte spørsmål. Bra jobbet!' }}</p>
+{% endif %}
+{% endblock %}

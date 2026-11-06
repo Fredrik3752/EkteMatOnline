@@ -4,6 +4,9 @@ from typing import Optional
 
 from app.models.errors import ValidationError
 
+MAX_QUESTION_LENGTH = 2000
+MAX_ANSWER_LENGTH = 4000
+
 
 @dataclass
 class Question:
@@ -23,13 +26,22 @@ class Question:
         return bool(self.answer)
 
     def validate(self) -> None:
-        if not (self.body or "").strip():
+        body = (self.body or "").strip()
+        if not body:
             raise ValidationError({"body": "Spørsmålet kan ikke være tomt."})
+        if len(body) > MAX_QUESTION_LENGTH:
+            raise ValidationError({"body": f"Spørsmålet kan være høyst {MAX_QUESTION_LENGTH} tegn."})
 
     def give_answer(self, text: str, admin_id: int, when: Optional[datetime] = None) -> None:
-        if not (text or "").strip():
+        if self.is_answered:
+            # Prevents two staff members from silently overwriting each other's answer.
+            raise ValidationError({"answer": "Spørsmålet er allerede besvart."})
+        text = (text or "").strip()
+        if not text:
             raise ValidationError({"answer": "Svaret kan ikke være tomt."})
-        self.answer = text.strip()
+        if len(text) > MAX_ANSWER_LENGTH:
+            raise ValidationError({"answer": f"Svaret kan være høyst {MAX_ANSWER_LENGTH} tegn."})
+        self.answer = text
         self.answered_by = admin_id
         # Stored in UTC like SQLite CURRENT_TIMESTAMP, so all timestamps are comparable.
         moment = (when or datetime.now(timezone.utc)).astimezone(timezone.utc)

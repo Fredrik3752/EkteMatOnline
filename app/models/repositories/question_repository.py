@@ -36,6 +36,9 @@ class QuestionRepository:
         ).fetchall()
         return [self._to_domain(r) for r in rows]
 
+    def count_unanswered(self) -> int:
+        return get_db().execute("SELECT COUNT(*) FROM questions WHERE answer IS NULL").fetchone()[0]
+
     def save_answer(self, question: Question) -> Question:
         db = get_db()
         with db:

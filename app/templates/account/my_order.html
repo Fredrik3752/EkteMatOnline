@@ -15,4 +15,18 @@
     <span class="muted small">Du kan avbestille til Ekte Mat har godkjent ordren.</span>
   </form>
 {% endif %}
+
+<section id="sporsmal" class="questions-section">
+  <h2>Spørsmål om ordren</h2>
+  {% include "orders/_questions.html" %}
+
+  <form class="admin-form question-form" method="post" action="{{ url_for('account.ask_question', order_id=order.id) }}#sporsmal" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="body">Still et spørsmål om denne ordren</label>
+    <textarea id="body" name="body" rows="3" maxlength="{{ max_question_length }}"
+              {% if question_error %}aria-invalid="true" aria-describedby="body-error"{% endif %}>{{ question_body }}</textarea>
+    {% if question_error %}<p class="field-error" id="body-error" role="alert">{{ question_error }}</p>{% endif %}
+    <button type="submit" class="button">Send spørsmål</button>
+  </form>
+</section>
 {% endblock %}

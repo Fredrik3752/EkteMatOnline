@@ -5,7 +5,7 @@ Bestillings- og cateringløsning for den fiktive Bergen-bedriften Ekte Mat AS
 (INFO212 oblig 4). Kundeside (meny per arrangement, handlekurv, bestilling, mine
 ordrer, spørsmål) og administrasjonspanel (matretter, bilder, ordrer, svar på
 spørsmål). Krav: A1–A4 og C1–C5 i oppgaveteksten; status per fase i `docs/plans/`.
-Ferdig: innlogging (fase 3), A1 + C1 (fase 4), C2 + C3 (fase 5), A3 ordrer + C4 mine ordrer (fase 6). Gjenstår: A4/C5 spørsmål, A2 bilder.
+Ferdig: innlogging (fase 3), A1 + C1 (fase 4), C2 + C3 (fase 5), A3 + C4 (fase 6), A4 + C5 spørsmål (fase 7). Gjenstår: A2 bilder.
 
 ## Stack
 Python 3.9+, Flask 3.1, Jinja2, SQLite (`sqlite3`), pytest. Ingen betalte API-er.

@@ -4,11 +4,11 @@
 {% block content %}
 {% include "admin/_nav.html" %}
 <h1>Administrasjon</h1>
-<p class="muted">Oversikt for Ekte Mat-ansatte. Sidene for bilder og spørsmål kommer i neste faser.</p>
+<p class="muted">Oversikt for Ekte Mat-ansatte. Bildefunksjonen kommer i neste fase.</p>
 
 <div class="stat-grid">
   <a class="stat" href="{{ url_for('admin.orders') }}"><span class="stat-value">{{ order_total }}</span><span class="stat-label">Ordrer totalt</span></a>
-  <div class="stat"><span class="stat-value">{{ unanswered }}</span><span class="stat-label">Ubesvarte spørsmål</span></div>
+  <a class="stat" href="{{ url_for('admin.questions') }}"><span class="stat-value">{{ unanswered }}</span><span class="stat-label">Ubesvarte spørsmål</span></a>
   <a class="stat" href="{{ url_for('admin.food_items') }}"><span class="stat-value">{{ published_total }} / {{ item_total }}</span><span class="stat-label">Publiserte matretter</span></a>
 </div>
 

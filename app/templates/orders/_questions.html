@@ -1,0 +1,30 @@
+{# Questions and answers for one order. Expects `questions`; `answer_form` (bool) shows admin answer forms. #}
+<ol class="question-list">
+  {% for q in questions %}
+  <li class="question {{ 'answered' if q.is_answered else 'unanswered' }}">
+    <div class="question-meta">
+      {% if authors is defined and authors.get(q.author_id) %}<strong>{{ authors[q.author_id].name }}</strong> · {% endif %}
+      {{ q.created_at|local_time }}
+    </div>
+    <p class="pre question-body">{{ q.body }}</p>
+    {% if q.is_answered %}
+      <div class="answer">
+        <div class="question-meta">Svar fra Ekte Mat · {{ q.answered_at|local_time }}</div>
+        <p class="pre">{{ q.answer }}</p>
+      </div>
+    {% elif answer_form %}
+      <form class="answer-form" method="post" action="{{ url_for('admin.answer_question', question_id=q.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+        <label for="answer-{{ q.id }}">Svar</label>
+        <textarea id="answer-{{ q.id }}" name="answer" rows="3" maxlength="4000" required></textarea>
+        <button type="submit" class="button">Send svar</button>
+      </form>
+    {% else %}
+      <p class="muted small">Venter på svar fra Ekte Mat.</p>
+    {% endif %}
+  </li>
+  {% else %}
+  <li class="muted">Ingen spørsmål ennå.</li>
+  {% endfor %}
+</ol>

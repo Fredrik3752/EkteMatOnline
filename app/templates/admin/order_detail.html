@@ -9,6 +9,13 @@
 <div class="admin-order-layout">
   <div>
     {% include "orders/_details.html" %}
+
+    <section id="sporsmal" class="questions-section">
+      <h2>Spørsmål fra kunden</h2>
+      {% set answer_form = true %}
+      {% set authors = {customer.id: customer} if customer else {} %}
+      {% include "orders/_questions.html" %}
+    </section>
   </div>
 
   <aside class="side-panel" aria-label="Behandle ordre">
